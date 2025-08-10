@@ -5,18 +5,16 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Fountain Live Preview</title>
 
-  <!-- Courier Prime (screenplay standard) -->
-  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+  <!-- Courier Prime (screenplay standard, SIL OFL) -->
+  <link href="https://fonts.cdnfonts.com/css/courier-prime" rel="stylesheet">
 
   <style>
-    :root {
-      --bg:#0f172a; --panel:#111827; --text:#e5e7eb; --muted:#94a3b8; --border:#1f2937;
-    }
+    :root { --bg:#0f172a; --panel:#111827; --text:#e5e7eb; --muted:#94a3b8; --border:#1f2937; }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
       margin:0;background:var(--bg);color:var(--text);
-      font:16px/1.5 'Courier Prime', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; /* screenplay font */
+      font:16px/1.5 'Courier Prime', monospace;
     }
     header{padding:10px 14px;border-bottom:1px solid var(--border)}
     h1{margin:0;font-size:18px}
@@ -25,8 +23,8 @@
     .pane h2{margin:0;padding:10px 12px;border-bottom:1px solid var(--border);font-size:14px;color:var(--muted)}
     #editor{flex:1;width:100%;resize:none;padding:14px 16px;background:transparent;color:var(--text);font-size:16px;line-height:1.7;border:0;outline:none}
     #preview{flex:1;padding:20px;overflow:auto}
-    .script{font-size:12pt;line-height:1.4} /* common screenplay sizing */
-    .title-input{padding:10px 12px;border-bottom:1px solid var(--border);background:transparent;color:var(--text);outline:none}
+    .script{font-size:12pt;line-height:1.4}
+    .title-input{padding:10px 12px;border-bottom:1px solid var(--border)}
     .title-input input{width:100%;padding:10px 12px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:16px}
     footer{max-width:1200px;margin:10px auto 24px;padding:0 12px;color:var(--muted)}
   </style>
@@ -40,7 +38,7 @@
     <section class="pane">
       <h2>Editor (.fountain)</h2>
       <div class="title-input">
-        <input id="title" placeholder="Optional: Title page 'Title:' will be added here" />
+        <input id="title" placeholder="Optional: Title (adds 'Title:' to title page)" />
       </div>
       <textarea id="editor" spellcheck="false" placeholder="Write Fountain here...
 
@@ -66,11 +64,10 @@ We need a rewrite."></textarea>
   </div>
 
   <footer>
-    <small>Fountain parsed in-browser; preview HTML comes from fountain.js (html.title_page + html.script). Font: Courier Prime.</small>
+    <small>Fountain parsed in-browser; preview = html.title_page + html.script. Font: Courier Prime (SIL OFL).</small>
   </footer>
 
-  <!-- Fountain.js (browser) -->
-  <!-- Place a local copy at vendor/fountain/fountain.js for reliability, or use this GitHub raw link replaced by your own hosted file. -->
+  <!-- Fountain.js browser build: exposes global `fountain` with parse() -->
   <script src="https://cdn.jsdelivr.net/gh/jonnygreenwald/fountain-js/dist/fountain.min.js"></script>
 
   <script>
@@ -86,10 +83,12 @@ We need a rewrite."></textarea>
 
     function render() {
       const text = buildFountain();
+      if (!window.fountain) {
+        previewEl.textContent = 'Fountain parser not loaded.';
+        return;
+      }
       try {
-        // Fountain.js browser API returns { title, html: { title_page, script } }
-        // per project docs
-        const out = fountain.parse(text);
+        const out = fountain.parse(text); // { title, html: { title_page, script } }
         const titleHtml = out.html && out.html.title_page ? `<div class="title-page">${out.html.title_page}</div>` : '';
         const bodyHtml = out.html && out.html.script ? out.html.script : '';
         previewEl.innerHTML = `${titleHtml}${bodyHtml}`;
@@ -106,8 +105,6 @@ We need a rewrite."></textarea>
 
     titleEl.addEventListener('input', scheduleRender);
     editorEl.addEventListener('input', scheduleRender);
-
-    // Initial render
     render();
   </script>
 </body>
