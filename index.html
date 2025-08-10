@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Free Writing Tool</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Free Writing Tool</h1>
+    <div class="stats">
+      <span id="wordCount">0 words</span>
+      <span id="charCount">0 chars</span>
+      <button id="exportMd">Export .md</button>
+      <button id="exportTxt">Export .txt</button>
+    </div>
+  </header>
+
+  <main>
+    <input id="title" placeholder="Title" />
+    <textarea id="editor" placeholder="Start writing..."></textarea>
+  </main>
+
+  <footer>
+    <small>Autosaved locally. No server used.</small>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
