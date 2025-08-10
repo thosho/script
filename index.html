@@ -3,29 +3,54 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Free Writing Tool</title>
+  <title>Screenplay Writer — Fountain</title>
+
+  <!-- Courier Prime (screenplay standard) -->
+  <link rel="preconnect" href="https://quoteunquoteapps.com">
+  <link rel="stylesheet" href="https://quoteunquoteapps.com/courierprime/courier-prime.css">
+  <!-- Courier Prime is released under SIL Open Font License (OFL) and intended for screenplays[16][7][13]. -->
+
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header>
-    <h1>Free Writing Tool</h1>
-    <div class="stats">
-      <span id="wordCount">0 words</span>
-      <span id="charCount">0 chars</span>
+    <h1>Screenplay Writer</h1>
+    <div class="toolbar">
+      <button id="openFountain">Open .fountain</button>
+      <input type="file" id="fileInput" accept=".fountain,.txt,.md" hidden />
+      <button id="exportFountain">Export .fountain</button>
+      <button id="exportPdf">Export PDF</button>
       <button id="exportMd">Export .md</button>
       <button id="exportTxt">Export .txt</button>
+      <span class="sep"></span>
+      <span id="stats">0w • 0p</span>
+      <span class="right"><button id="themeToggle">Theme</button></span>
     </div>
   </header>
 
-  <main>
-    <input id="title" placeholder="Title" />
-    <textarea id="editor" placeholder="Start writing..."></textarea>
+  <main class="split">
+    <section class="editor-pane">
+      <input id="title" placeholder="Title page: Title: Your Script" />
+      <textarea id="editor" spellcheck="false" placeholder="Write Fountain here...
+Title: My Script
+Credit: Written by
+Author: Your Name
+Draft date: August 2025
+
+INT. ROOM — DAY
+Your scene starts here.
+Character
+Dialogue line.
+"></textarea>
+    </section>
+    <section class="preview-pane">
+      <div id="preview" class="script"></div>
+    </section>
   </main>
 
   <footer>
-    <small>Autosaved locally. No server used.</small>
+    <small>Fountain preview uses Courier Prime; PDF export is client-side. No server required[16][4][2].</small>
   </footer>
 
-  <script src="app.js"></script>
-</body>
-</html>
+  <!-- Fountain parser (browser) -->
+  <!-- Option A: Use fountain-js from a local vendor build you add to your repo (recommended) -->
