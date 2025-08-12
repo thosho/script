@@ -33,7 +33,7 @@
         <div id="output"></div>
     </div>
     <script>
-        // Embedded Fountain Parser (based on Afterwriting Labs' Fountain-JS v1.0.0 - simplified for this use)
+        // Improved Fountain Parser with multi-line transition handling
         const fountainParser = (function() {
             const rules = {
                 scene_heading: /^((?:i(?:nt)?|e(?:xt)?|est|int\/ext|I\/E)[. ].+)|^(?:\.(?!.+ ))(.+)/i,
@@ -48,10 +48,28 @@
                 const lines = text.split(/\n/);
                 let html = '';
                 let state = 'action';
+                let potentialTransition = ''; // Buffer for multi-line transitions
 
                 lines.forEach(line => {
                     line = line.trim();
                     if (!line) return;
+
+                    // Detect and combine potential multi-line transitions (e.g., vertical "CUT TO:")
+                    if (/^[A-Z\s:.]+$/.test(line) && state === 'action') { // Uppercase letters, spaces, colon
+                        potentialTransition += (potentialTransition ? ' ' : '') + line;
+                        if (rules.transition.test(potentialTransition)) {
+                            html += `<p class="transition">${potentialTransition}</p>`;
+                            potentialTransition = '';
+                            state = 'action';
+                            return;
+                        }
+                    } else {
+                        if (potentialTransition) {
+                            // If not a transition, treat as action
+                            html += `<p class="action">${potentialTransition}</p>`;
+                            potentialTransition = '';
+                        }
+                    }
 
                     if (rules.scene_heading.test(line)) {
                         html += `<p class="scene-heading">${line}</p>`;
@@ -71,6 +89,11 @@
                         state = 'action';
                     }
                 });
+
+                // Flush any remaining potential transition
+                if (potentialTransition) {
+                    html += `<p class="action">${potentialTransition}</p>`;
+                }
 
                 return { html: { script: html } };
             }
@@ -106,11 +129,11 @@
         function generatePDF(forPrint = false) {
             if (!window.jspdf) {
                 alert('jsPDF failed to load. Check your internet or try a different browser.');
-                return null;
+                return;
             }
             if (output.innerHTML.trim() === '' || output.innerHTML === '<p>Error parsing. Check syntax.</p>') {
                 alert('No content to process. Add screenplay text first.');
-                return null;
+                return;
             }
 
             const { jsPDF } = window.jspdf;
@@ -122,39 +145,43 @@
             let y = 72; // Starting Y (1 inch margin)
             const pageWidth = 595; // A4 width in pt
             const pageHeight = 842; // A4 height in pt
-            const leftMargin = 72; // 1 inch
-            const rightMargin = pageWidth - 72;
-            const lineHeight = 14;
+            const leftMargin = 108; // 1.5 inch for action
+            const rightMargin = pageWidth - 72; // 1 inch right
+            const lineHeight = 12; // Standard screenplay line height
 
             elements.forEach(el => {
-                let text = el.textContent.trim();
+                let text = el.textContent.trim().replace(/\s+/g, ' '); // Clean extra spaces
                 let x = leftMargin;
                 const className = el.className;
+
+                // Reset font before each element
+                doc.setFont('courier', 'normal');
 
                 // Apply styles and positioning
                 if (className === 'scene-heading') {
                     doc.setFont('courier', 'bold');
                     x = leftMargin;
+                    y += lineHeight; // Extra space above scenes
                 } else if (className === 'character') {
-                    doc.setFont('courier', 'normal');
-                    x = leftMargin + 144; // Approx 2 inches indent
+                    x = leftMargin + 108; // 2.5 inch indent
+                    y += lineHeight; // Space above character
                 } else if (className === 'dialogue') {
-                    x = leftMargin + 100;
+                    x = leftMargin + 72; // 2 inch indent
                 } else if (className === 'parenthetical') {
-                    x = leftMargin + 120;
+                    x = leftMargin + 90; // 2.2 inch indent
                     doc.setFont('courier', 'italic');
                 } else if (className === 'transition') {
-                    doc.setFont('courier', 'normal');
                     x = rightMargin - doc.getTextWidth(text); // Right-align
+                    y += lineHeight; // Extra space
                 } else {
-                    doc.setFont('courier', 'normal');
                     x = leftMargin;
                 }
 
-                // Split long lines
-                const lines = doc.splitTextToSize(text, rightMargin - x - 36); // Width with margin buffer
+                // Split long lines, but avoid over-splitting short ones (e.g., transitions)
+                const maxWidth = rightMargin - x - 36;
+                const lines = text.length < 20 ? [text] : doc.splitTextToSize(text, maxWidth); // Don't split short lines
                 lines.forEach(line => {
-                    if (y + lineHeight > pageHeight - 72) { // Bottom margin check
+                    if (y + lineHeight > pageHeight - 72) {
                         doc.addPage();
                         y = 72;
                     }
@@ -162,20 +189,20 @@
                     y += lineHeight;
                 });
 
-                // Add extra spacing between elements
-                y += lineHeight / 2;
+                // Reset font after element and add spacing
+                doc.setFont('courier', 'normal');
+                y += lineHeight / 2; // Inter-element spacing
             });
 
             if (forPrint) {
-                doc.autoPrint({ variant: 'non-conform' }); // Trigger print dialog
-                window.open(doc.output('bloburl'), '_blank'); // Open in new tab for printing
+                doc.autoPrint({ variant: 'non-conform' });
+                window.open(doc.output('bloburl'), '_blank');
             } else {
                 try {
                     doc.save('screenplay.pdf');
                 } catch (error) {
                     console.error('PDF save failed:', error);
                     alert('Save failed. Check console or try another browser.');
-                    // Fallback: Generate Blob for manual download
                     const blob = doc.output('blob');
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
