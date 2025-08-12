@@ -1,231 +1,85 @@
-<!--
-FreeWriter - single-file static app
-Drop this file as index.html into the repository named `freewriter` on the GitHub account `free-writer` and enable GitHub Pages (branch: main or gh-pages).
-URL the user provided: https://free-writer.github.io/freewriter/
-
-Deployment quick steps:
-1. Create GitHub repo `freewriter` in user/org `free-writer`.
-2. Add this file as `index.html` on the repository's default branch (main).
-3. In the repo Settings -> Pages, set the source to the default branch (main) and root (/).
-4. Wait a minute — your site will be live at https://free-writer.github.io/freewriter/
-
-This app uses the Fountain parser (fountain-js) via CDN to convert Fountain -> HTML preview.
--->
-
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>FreeWriter — Fountain live preview</title>
-  <style>
-    :root{--bg:#0f1724;--panel:#0b1220;--muted:#94a3b8;--accent:#7c3aed}
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial;background:linear-gradient(180deg,#071226 0%, #081827 100%);color:#e6eef8}
-    header{display:flex;align-items:center;gap:.75rem;padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.03)}
-    .brand{font-weight:700;font-size:1.05rem;display:flex;gap:.6rem;align-items:center}
-    .container{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px;height:calc(100vh - 64px)}
-    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:12px;box-shadow:0 6px 20px rgba(2,6,23,0.6);overflow:hidden;display:flex;flex-direction:column}
-    textarea{flex:1;width:100%;resize:none;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:var(--muted);font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', monospace;font-size:14px;line-height:1.45}
-    .toolbar{display:flex;gap:8px;align-items:center;margin-bottom:8px}
-    button{background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:8px;cursor:pointer}
-    button.primary{background:linear-gradient(90deg,var(--accent),#4f46e5);color:white;border:none}
-    .preview{flex:1;overflow:auto;padding:12px;border-radius:8px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005))}
-    .meta{font-size:12px;color:var(--muted)}
-    .split-resize{width:8px;cursor:col-resize;background:transparent}
-    .hint{font-size:12px;color:var(--muted)}
-    footer{padding:10px 18px;color:var(--muted);font-size:13px}
-    @media (max-width:900px){.container{grid-template-columns:1fr;grid-auto-rows:1fr}.split-resize{display:none}}
-    /* Basic Fountain preview styling (keeps it compact) */
-    .script{max-width:760px;margin:0 auto;color:#e6eef8}
-    .script h1,.script h2,.script h3{color:#fff}
-    .scene-heading{font-weight:700;text-transform:uppercase;margin-top:10px}
-    .action{margin:10px 0}
-    .character{text-align:center;font-weight:700;margin-top:14px}
-    .dialogue{margin:6px 20%}
-    .parenthetical{margin-left:22%}
-    .centered{text-align:center}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>FreeWriter — Fountain live preview</title>
+
+<!-- Fountain parser -->
+<script src="https://unpkg.com/fountain-js/dist/fountain.min.js"></script>
+
+<!-- Fountain demo stylesheet for screenplay look -->
+<link rel="stylesheet" href="https://unpkg.com/fountain-js/demo/style.css">
+
+<style>
+  body {
+    display: flex;
+    height: 100vh;
+    margin: 0;
+    font-family: sans-serif;
+    background: #111;
+    color: #eee;
+  }
+  textarea {
+    flex: 1;
+    padding: 1em;
+    font-size: 14px;
+    font-family: monospace;
+    background: #222;
+    color: #eee;
+    border: none;
+    resize: none;
+    outline: none;
+  }
+  #preview {
+    flex: 1;
+    padding: 1em;
+    overflow: auto;
+    background: #181818;
+  }
+</style>
 </head>
 <body>
-  <header>
-    <div class="brand">📝 FreeWriter <span class="meta">— live Fountain preview</span></div>
-    <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
-      <div class="meta">Autosave: <span id="autosave-state">on</span></div>
-      <button id="downloadBtn">Download .fountain</button>
-      <button id="copyBtn">Copy HTML</button>
-      <button id="clearBtn">Clear</button>
-    </div>
-  </header>
 
-  <div class="container">
-    <div class="card" style="min-width:0">
-      <div class="toolbar">
-        <div class="meta">Editor</div>
-        <div style="flex:1"></div>
-        <div class="hint">Fountain syntax — write naturally. Example: INT. HOUSE - DAY</div>
-      </div>
-      <textarea id="editor" spellcheck="false" placeholder="Write Fountain here... (e.g. INT. HOUSE - DAY\nA ROOM.\nCHARACTER\n  Dialogue goes here.)"></textarea>
-    </div>
+<textarea id="editor" placeholder="Write Fountain here..."></textarea>
+<div id="preview">Preview will appear here.</div>
 
-    <div class="split-resize" id="resizer" title="Drag to resize"></div>
+<script>
+function renderFountain(text) {
+  if (window.fountain && typeof fountain.parse === 'function') {
+    const result = fountain.parse(text || '');
+    return result.html && result.html.script ? result.html.script : '';
+  }
+  const esc = (text || '').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  return '<pre>' + esc + '</pre>';
+}
 
-    <div class="card">
-      <div class="toolbar">
-        <div class="meta">Preview</div>
-        <div style="flex:1"></div>
-        <div class="hint">Rendered using fountain-js (client-side)</div>
-      </div>
-      <div id="preview" class="preview"><div class="meta">Preview will appear here.</div></div>
-    </div>
-  </div>
+const editor = document.getElementById('editor');
+const preview = document.getElementById('preview');
 
-  <footer>
-    <div>Deploy instructions: create repository <code>freewriter</code> under GitHub account <code>free-writer</code>, add this as <code>index.html</code>, then enable Pages from main branch. See the HTML comment at the top for steps.</div>
-  </footer>
+function updatePreview() {
+  preview.innerHTML = renderFountain(editor.value);
+}
 
-  <!-- fountain-js will parse Fountain -> html.script. We reference it from a CDN. If your environment blocks CDNs, replace the script with a local copy of fountain-js. -->
-  <script src="https://cdn.jsdelivr.net/npm/fountain-js@1.2.4/dist/fountain.min.js"></script>
-  <script>
-    // Safety: if library didn't load, load a small fallback parser that just escapes text
-    const FountainLibAvailable = typeof Fountain !== 'undefined';
+editor.addEventListener('input', updatePreview);
 
-    const editor = document.getElementById('editor');
-    const preview = document.getElementById('preview');
-    const autosaveState = document.getElementById('autosave-state');
-    const downloadBtn = document.getElementById('downloadBtn');
-    const copyBtn = document.getElementById('copyBtn');
-    const clearBtn = document.getElementById('clearBtn');
+// Starter text
+editor.value = `INT. HOUSE - DAY
 
-    // Load from localStorage if present
-    const STORAGE_KEY = 'freewriter:fountain';
-    const last = localStorage.getItem(STORAGE_KEY);
-    if (last) editor.value = last;
+A small, cluttered room. A person sits at a desk, typing.
 
-    function renderFountain(text){
-      if (typeof Fountain !== 'undefined'){
-        try{
-          const fountain = new Fountain();
-          const out = fountain.parse(text || '');
-          // out.html.script contains HTML string
-          return '<div class="script">'+out.html.script+'</div>';
-        }catch(e){
-          return '<pre style="white-space:pre-wrap;color:#fca5a5">Parse error: '+(e.message||e)+'</pre>';
-        }
-      }else{
-        // fallback: very small renderer (keeps paragraphs and headings)
-        const esc = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-        return '<pre style="white-space:pre-wrap;color:var(--muted)">'+esc+'</pre>';
-      }
-    }
+SAM
+  (to herself)
+  This is a quick sample.
 
-    function updatePreview(){
-      const text = editor.value;
-      preview.innerHTML = renderFountain(text);
-    }
+CUT TO:
 
-    // debounce
-    let t;
-    editor.addEventListener('input', ()=>{
-      clearTimeout(t); t = setTimeout(()=>{
-        updatePreview();
-        localStorage.setItem(STORAGE_KEY, editor.value);
-      }, 200);
-    });
+EXT. STREET - NIGHT
 
-    // initial render
-    updatePreview();
+Cars pass by.
+`;
+updatePreview();
+</script>
 
-    // Download .fountain file
-    downloadBtn.addEventListener('click', ()=>{
-      const blob = new Blob([editor.value], {type:'text/plain'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = (document.title || 'script') + '.fountain';
-      document.body.appendChild(a); a.click(); a.remove();
-      URL.revokeObjectURL(a.href);
-    });
-
-    copyBtn.addEventListener('click', async ()=>{
-      // copy rendered HTML
-      const html = preview.innerHTML;
-      try{
-        await navigator.clipboard.writeText(html);
-        copyBtn.textContent = 'Copied!';
-        setTimeout(()=>copyBtn.textContent='Copy HTML',1200);
-      }catch(e){
-        alert('Copy failed — try selecting the preview and pressing Ctrl+C');
-      }
-    });
-
-    clearBtn.addEventListener('click', ()=>{
-      if (!confirm('Clear the editor? This cannot be undone.')) return;
-      editor.value=''; updatePreview(); localStorage.removeItem(STORAGE_KEY);
-    });
-
-    // Optional: simple vertical resizer for small screens (draggable)
-    (function(){
-      const resizer = document.getElementById('resizer');
-      const container = document.querySelector('.container');
-      let dragging=false;
-      resizer.addEventListener('pointerdown', e=>{ dragging=true; resizer.setPointerCapture(e.pointerId); });
-      window.addEventListener('pointerup', e=>{ dragging=false; });
-      window.addEventListener('pointermove', e=>{
-        if(!dragging) return;
-        const rect = container.getBoundingClientRect();
-        let x = e.clientX - rect.left;
-        const pct = Math.max(20, Math.min(80, (x/rect.width)*100));
-        container.style.gridTemplateColumns = pct + 'fr ' + (100-pct) + 'fr';
-      });
-    })();
-
-    // allow dropping a .fountain file into the editor
-    window.addEventListener('dragover', e=>e.preventDefault());
-    window.addEventListener('drop', e=>{
-      e.preventDefault();
-      const f = e.dataTransfer.files && e.dataTransfer.files[0];
-      if (f){
-        const reader = new FileReader();
-        reader.onload = ()=>{ editor.value = reader.result; updatePreview(); localStorage.setItem(STORAGE_KEY, editor.value); };
-        reader.readAsText(f);
-      }
-    });
-
-    // sample starter text if empty
-    if (!editor.value.trim()){
-      editor.value = "INT. HOUSE - DAY\n\nA small, cluttered room. A person sits at a desk, typing.\n\nSAM\n  (to herself)\n  This is a quick sample.\n\nCUT TO:\n\nEXT. STREET - NIGHT\n\nCars pass by.\n";
-      updatePreview();
-    }
-  </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Test Fountain</title>
-</head>
-<body>
-  <textarea id="editor" rows="8" cols="50">FADE IN:</textarea>
-  <div id="preview"><em>Preview will appear here...</em></div>
-
-  <script src="https://unpkg.com/fountain-js@1.9.1/dist/fountain.js"></script>
-  <script>
-    console.log('Fountain object:', typeof Fountain);
-    const editor = document.getElementById('editor');
-    const preview = document.getElementById('preview');
-    if (typeof Fountain === 'undefined') {
-      preview.innerHTML = '<span style="color:red">Fountain failed to load</span>';
-    } else {
-      const f = new Fountain();
-      function render() {
-        const parsed = f.parse(editor.value, true);
-        preview.innerHTML = `<div class="screenplay-preview">${parsed.html.script}</div>`;
-      }
-      editor.addEventListener('input', render);
-      render();
-    }
-  </script>
 </body>
 </html>
