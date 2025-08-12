@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Working Fountain Screenplay Editor</title>
+    <title>Film Folks</title>
     <style>
         :root {
             --bg-color: #fff;
@@ -42,7 +42,7 @@
 </head>
 <body>
     <div id="editor">
-        <h2>Write Your Screenplay (Fountain Syntax)</h2>
+        <h2>Type Screenplay</h2>
         <textarea id="input" placeholder="Type Fountain markup here... e.g., INT. HOUSE - DAY&#10;&#10;JOHN&#10;Hello!"></textarea>
         <button onclick="saveFile()">Save as .fountain</button>
         <button onclick="saveAsPDF()">Save as PDF</button>
@@ -50,7 +50,7 @@
         <button id="dark-mode-toggle" onclick="toggleDarkMode()">☀️</button>
     </div>
     <div id="preview">
-        <h2>Live Screenplay Preview</h2>
+        <h2>Screenplay Preview</h2>
         <div id="output"></div>
     </div>
     <script>
