@@ -28,5 +28,48 @@
       preview.innerHTML = text;
     });
   </script>
+    <!-- Load Fountain parser -->
+  <script src="https://unpkg.com/fountain-js@1.9.1/dist/fountain.js"></script>
+
+  <!-- Your existing preview script -->
+  <script>
+    const editor = document.getElementById('editor');
+    const preview = document.getElementById('preview');
+
+    let fountain;
+    if (typeof Fountain !== 'undefined') {
+      fountain = new Fountain();
+    }
+
+    function render() {
+      const text = editor.value;
+      if (!text.trim()) {
+        preview.innerHTML = '<em>Live preview...</em>';
+        return;
+      }
+
+      if (fountain) {
+        try {
+          const parsed = fountain.parse(text, true);
+          if (parsed && parsed.html && parsed.html.script) {
+            preview.innerHTML =
+              '<div class="screenplay-preview">' + parsed.html.script + '</div>';
+            return;
+          }
+        } catch (err) {
+          console.warn('Fountain parse error', err);
+        }
+      }
+
+      // fallback — plain text
+      preview.textContent = text;
+    }
+
+    editor.addEventListener('input', render);
+    render();
+  </script>
+</body>
+</html>
+
 </body>
 </html>
