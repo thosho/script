@@ -80,25 +80,24 @@
         #zoom-in { display: none; }
         #title-display { margin-top: 10px; font-size: 12pt; }
         #title-edit { margin-left: 5px; padding: 5px 10px; vertical-align: top; } /* Edit button close to display text, within editor frame */
-        .top-controls { display: flex; justify-content: center; margin-bottom: 10px; } /* Container for moved buttons above Save Title */
-        .top-controls button { margin: 0 5px; padding: 5px; font-size: 16px; background: none; border: none; cursor: pointer; }
-        #preview-fullscreen { margin-top: 10px; padding: 5px 10px; } /* New preview button at bottom */
+        .title-controls { display: flex; align-items: center; margin-bottom: 10px; } /* Container for controls next to Save Title */
+        .title-controls button { margin-left: 5px; padding: 5px; font-size: 16px; background: none; border: none; cursor: pointer; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <div id="editor">
         <div id="title-form">
-            <div class="top-controls">
+            <input id="title" placeholder="Screenplay Title">
+            <input id="writer" placeholder="Writer Name">
+            <div class="title-controls">
+                <button onclick="setTitle()">Save Title</button>
                 <button id="dark-mode-toggle" onclick="toggleDarkMode()">☀️</button>
                 <button onclick="zoomIn()">+</button>
                 <button onclick="zoomOut()">-</button>
                 <button onclick="resetZoom()">R</button>
                 <button id="fullscreen-toggle" onclick="toggleFullscreen()">⛶</button>
             </div>
-            <input id="title" placeholder="Screenplay Title">
-            <input id="writer" placeholder="Writer Name">
-            <button onclick="setTitle()">Save Title</button>
         </div>
         <div id="title-display" style="display: none;">
             <p id="display-title"></p>
@@ -112,9 +111,9 @@ Hello!"></textarea>
         <div class="buttons-row">
             <button onclick="saveFile()">Save as .fountain</button>
             <button onclick="printPDF()">Print PDF</button>
+            <button onclick="previewFullscreen()">Preview Fullscreen</button>
             <button id="auto-save-toggle" onclick="toggleAutoSave()">Auto Save: Off</button>
         </div>
-        <button id="preview-fullscreen" onclick="previewFullscreen()">Preview Formatted Screenplay in Full Screen</button>
     </div>
     <div id="format-buttons">
         <button onclick="applyFormat('S')">S</button>
