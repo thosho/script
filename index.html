@@ -1,27 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>FreeWriter - Fountain Editor</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Test Fountain</title>
 </head>
 <body>
-  <header>
-    <h1>FreeWriter - Screenplay Editor</h1>
-  </header>
+  <textarea id="editor" rows="8" cols="50">FADE IN:</textarea>
+  <div id="preview"><em>Preview will appear here...</em></div>
 
-  <main>
-    <textarea id="editor" placeholder="Type your Fountain script here..."></textarea>
-    <div id="preview"><em>Live preview...</em></div>
-  </main>
-
-  <!-- Load Fountain parser library -->
   <script src="https://unpkg.com/fountain-js@1.9.1/dist/fountain.js"></script>
-  <!-- Load our own script -->
-  <script src="script.js"></script>
-  <link rel="stylesheet" href="style.css">
-<script src="https://unpkg.com/fountain-js@1.9.1/dist/fountain.js"></script>
-<script src="script.js"></script>
+  <script>
+    console.log('Fountain object:', typeof Fountain);
+    const editor = document.getElementById('editor');
+    const preview = document.getElementById('preview');
+    if (typeof Fountain === 'undefined') {
+      preview.innerHTML = '<span style="color:red">Fountain failed to load</span>';
+    } else {
+      const f = new Fountain();
+      function render() {
+        const parsed = f.parse(editor.value, true);
+        preview.innerHTML = `<div class="screenplay-preview">${parsed.html.script}</div>`;
+      }
+      editor.addEventListener('input', render);
+      render();
+    }
+  </script>
 </body>
 </html>
