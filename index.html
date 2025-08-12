@@ -1,111 +1,52 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Fountain Live Preview</title>
-
-  <!-- Courier Prime (screenplay standard, SIL OFL) -->
-  <link href="https://fonts.cdnfonts.com/css/courier-prime" rel="stylesheet">
-
-  <style>
-    :root { --bg:#0f172a; --panel:#111827; --text:#e5e7eb; --muted:#94a3b8; --border:#1f2937; }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;background:var(--bg);color:var(--text);
-      font:16px/1.5 'Courier Prime', monospace;
-    }
-    header{padding:10px 14px;border-bottom:1px solid var(--border)}
-    h1{margin:0;font-size:18px}
-    .wrap{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:1200px;margin:12px auto;padding:0 12px}
-    .pane{min-height:80vh;background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
-    .pane h2{margin:0;padding:10px 12px;border-bottom:1px solid var(--border);font-size:14px;color:var(--muted)}
-    #editor{flex:1;width:100%;resize:none;padding:14px 16px;background:transparent;color:var(--text);font-size:16px;line-height:1.7;border:0;outline:none}
-    #preview{flex:1;padding:20px;overflow:auto}
-    .script{font-size:12pt;line-height:1.4}
-    .title-input{padding:10px 12px;border-bottom:1px solid var(--border)}
-    .title-input input{width:100%;padding:10px 12px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:16px}
-    footer{max-width:1200px;margin:10px auto 24px;padding:0 12px;color:var(--muted)}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screenplay Writer</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <h1>Fountain → Screenplay Preview</h1>
-  </header>
+    <div class="container">
+        <header>
+            <h1>Screenplay Writer</h1>
+            <div class="toolbar">
+                <button id="newBtn">New</button>
+                <button id="saveBtn">Save</button>
+                <button id="loadBtn">Load</button>
+                <span id="autoSaveStatus">Auto-saved</span>
+            </div>
+        </header>
+        
+        <main>
+            <div class="editor-container">
+                <textarea 
+                    id="scriptEditor" 
+                    placeholder="Start writing your screenplay here...
+                    
+Example:
+FADE IN:
 
-  <div class="wrap">
-    <section class="pane">
-      <h2>Editor (.fountain)</h2>
-      <div class="title-input">
-        <input id="title" placeholder="Optional: Title (adds 'Title:' to title page)" />
-      </div>
-      <textarea id="editor" spellcheck="false" placeholder="Write Fountain here...
+EXT. COFFEE SHOP - DAY
 
-Title: My Script
-Credit: Written by
-Author: Your Name
-Draft date: August 2025
+JOHN enters the coffee shop.
 
-INT. ROOM — DAY
-A bare room. Sunlight through the blinds.
+                    JOHN
+          I'll have a large coffee, please.
 
-CHARLIE
-We need coffee.
-
-MIA
-We need a rewrite."></textarea>
-    </section>
-
-    <section class="pane">
-      <h2>Preview (formatted screenplay)</h2>
-      <div id="preview" class="script"></div>
-    </section>
-  </div>
-
-  <footer>
-    <small>Fountain parsed in-browser; preview = html.title_page + html.script. Font: Courier Prime (SIL OFL).</small>
-  </footer>
-
-  <!-- Fountain.js browser build: exposes global `fountain` with parse() -->
-  <script src="https://cdn.jsdelivr.net/gh/jonnygreenwald/fountain-js/dist/fountain.min.js"></script>
-
-  <script>
-    const titleEl = document.getElementById('title');
-    const editorEl = document.getElementById('editor');
-    const previewEl = document.getElementById('preview');
-
-    function buildFountain() {
-      const t = titleEl.value.trim();
-      const titleBlock = t ? `Title: ${t}\n\n` : '';
-      return `${titleBlock}${editorEl.value}`;
-    }
-
-    function render() {
-      const text = buildFountain();
-      if (!window.fountain) {
-        previewEl.textContent = 'Fountain parser not loaded.';
-        return;
-      }
-      try {
-        const out = fountain.parse(text); // { title, html: { title_page, script } }
-        const titleHtml = out.html && out.html.title_page ? `<div class="title-page">${out.html.title_page}</div>` : '';
-        const bodyHtml = out.html && out.html.script ? out.html.script : '';
-        previewEl.innerHTML = `${titleHtml}${bodyHtml}`;
-      } catch (e) {
-        previewEl.textContent = 'Parse error: ' + e.message;
-      }
-    }
-
-    let t;
-    function scheduleRender() {
-      clearTimeout(t);
-      t = setTimeout(render, 120);
-    }
-
-    titleEl.addEventListener('input', scheduleRender);
-    editorEl.addEventListener('input', scheduleRender);
-    render();
-  </script>
+The barista nods and starts preparing the order."
+                ></textarea>
+            </div>
+        </main>
+        
+        <footer>
+            <div class="status-bar">
+                <span id="wordCount">Words: 0</span>
+                <span id="lastSaved">Never saved</span>
+            </div>
+        </footer>
+    </div>
+    
+    <script src="script.js"></script>
 </body>
 </html>
