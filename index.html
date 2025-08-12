@@ -50,7 +50,7 @@
         #preview { flex: 1; padding: 20px; overflow-y: auto; background: var(--preview-bg); }
         textarea { width: 100%; height: 80%; font-size: 12pt; border: 1px solid var(--border-color); resize: none; background: var(--bg-color); color: var(--text-color); } /* Increased vertical size */
         input { width: 70%; margin-bottom: 10px; padding: 5px; font-size: 12pt; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); display: inline-block; } /* Shortened fields */
-        #title-form button { margin-left: 5px; padding: 5px 10px; vertical-align: top; }
+        #title-form button { margin-left: 5px; padding: 5px 10px; vertical-align: top; position: relative; top: -10px; left: 50%; transform: translateX(-50%); } /* Moved Set button above, centered */
         button { margin-top: 10px; padding: 3px 6px; margin-right: 5px; font-size: 10pt; } /* Reduced button size */
         .buttons-row { display: flex; align-items: center; flex-wrap: nowrap; } /* Keep buttons in one line */
         .scene-heading { font-weight: bold; text-transform: uppercase; margin: 1em 0; }
@@ -65,17 +65,17 @@
         #exit-fullscreen { display: none; position: absolute; top: 10px; right: 10px; padding: 5px 10px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); cursor: pointer; }
         body.fullscreen-mode #editor { flex: auto; width: 100%; padding: 10px; }
         body.fullscreen-mode #preview { display: none; }
-        body.fullscreen-mode #format-buttons { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); flex-direction: row; width: auto; padding: 0; border: none; background: transparent; }
+        body.fullscreen-mode #format-buttons { position: absolute; top: 10px; left: 10px; flex-direction: row; width: auto; padding: 0; border: none; background: transparent; } /* Horizontal at top left above text editor */
         body.fullscreen-mode #format-buttons button { margin: 0 3px; }
-        body.fullscreen-mode #exit-fullscreen { display: block; }
+        body.fullscreen-mode #exit-fullscreen { display: block; position: absolute; top: 10px; right: 40px; } /* Next to dark mode */
         body.fullscreen-mode textarea { height: 95%; }
         body.fullscreen-mode #title-form, body.fullscreen-mode #title-display { display: none; } /* Hide title fields in fullscreen */
         body.fullscreen-mode .buttons-row { display: none; }
         body.fullscreen-mode #auto-save-toggle { display: none; }
-        body.fullscreen-mode #dark-mode-toggle, body.fullscreen-mode #fullscreen-toggle { position: absolute; top: 10px; right: 60px; } /* Right corner for dark and fullscreen */
+        body.fullscreen-mode #dark-mode-toggle { position: absolute; top: 10px; right: 10px; } /* Dark mode in right corner next to exit fullscreen */
         body.fullscreen-mode #fullscreen-toggle { display: none; } /* Hide fullscreen toggle in fullscreen */
         #title-display { margin-top: 10px; font-size: 12pt; }
-        #title-edit { padding: 3px 6px; font-size: 10pt; }
+        #title-edit { padding: 3px 6px; font-size: 10pt; position: relative; top: -10px; left: 50%; transform: translateX(-50%); } /* Edit button in same place as Set */
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
