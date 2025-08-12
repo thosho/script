@@ -3,35 +3,32 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Screenplay Writer (Minimal)</title>
-  <link rel="stylesheet" href="style.css"/>
+  <title>Simple Screenplay Editor</title>
+  <style>
+    body { font-family: 'Courier New', monospace; margin:0; background:#f5f5f5; }
+    header { background:#fff; padding:10px; border-bottom:1px solid #ccc; }
+    main { display:flex; gap:10px; padding:10px; height:calc(100vh - 50px); }
+    textarea, pre { flex:1; padding:10px; border-radius:5px; }
+    textarea { border:1px solid #aaa; font-size:14px; line-height:1.5; }
+    pre { background:#fff; border:1px solid #ddd; white-space:pre-wrap; overflow:auto; }
+    h1 { margin:0; font-size:20px; }
+  </style>
 </head>
 <body>
-  <header><h1>Screenplay Writer</h1></header>
-
+  <header><h1>Screenplay Editor</h1></header>
   <main>
-    <section class="pane">
-      <textarea id="editor" placeholder="Type Fountain here...
-
-FADE IN:
-
-EXT. PARK - DAY
-
-JANE sits on a bench.
-
-                JANE
-      What a day.
-
-"></textarea>
-    </section>
-
-    <section class="pane">
-      <div id="preview"><em>Start typing to see preview…</em></div>
-    </section>
+    <textarea id="editor" placeholder="Type your script here..."></textarea>
+    <pre id="preview"><em>Live preview...</em></pre>
   </main>
 
-  <!-- Fountain parser (fountain-js) -->
-  <script src="https://unpkg.com/fountain-js@1.9.1/dist/fountain.js"></script>
-  <script src="script.js"></script>
+  <script>
+    const editor = document.getElementById('editor');
+    const preview = document.getElementById('preview');
+
+    editor.addEventListener('input', () => {
+      const text = editor.value || '<em>Live preview...</em>';
+      preview.innerHTML = text;
+    });
+  </script>
 </body>
 </html>
