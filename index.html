@@ -1,87 +1,151 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fountain Screenplay Editor</title>
-    <style>
-        body { font-family: monospace; display: flex; height: 100vh; margin: 0; }
-        #editor { flex: 1; padding: 10px; }
-        #preview { flex: 1; padding: 10px; background: #f0f0f0; overflow-y: auto; }
-        textarea { width: 100%; height: 80%; font-size: 14px; }
-        button { margin-top: 10px; }
-        .scene_heading { text-transform: uppercase; font-weight: bold; }
-        .character { text-transform: uppercase; margin-top: 10px; }
-        .dialogue { margin-left: 20px; }
-        /* Add more Fountain styles as needed */
-    </style>
-    <script src="https://cdn.jsdelivr.net/gh/mattdaly/Fountain.js@fountain.js"></script>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>FreeWriter — Fountain live preview</title>
+
+<!-- Fountain parser -->
+<script src="https://unpkg.com/fountain-js/dist/fountain.min.js"></script>
+
+<!-- Fountain demo stylesheet for screenplay look -->
+<link rel="stylesheet" href="https://unpkg.com/fountain-js/demo/style.css">
+
+<style>
+  body {
+    margin: 0;
+    display: flex;
+    height: 100vh;
+    background: #111;
+    color: #eee;
+    font-family: sans-serif;
+  }
+  #editor {
+    flex: 1;
+    padding: 1em;
+    font-size: 14px;
+    font-family: monospace;
+    background: #222;
+    color: #eee;
+    border: none;
+    resize: none;
+    outline: none;
+  }
+  #preview {
+    flex: 1;
+    padding: 1em;
+    overflow: auto;
+    background: #181818;
+  }
+  header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 40px;
+    background: #000;
+    display: flex;
+    align-items: center;
+    padding: 0 1em;
+    gap: 10px;
+    font-size: 14px;
+  }
+  header button {
+    background: #333;
+    color: #eee;
+    border: none;
+    padding: 4px 8px;
+    cursor: pointer;
+  }
+  header button:hover {
+    background: #444;
+  }
+  #container {
+    display: flex;
+    flex: 1;
+    margin-top: 40px;
+  }
+</style>
 </head>
 <body>
-    <div id="editor">
-        <h2>Write Your Screenplay (Fountain Syntax)</h2>
-        <textarea id="input" placeholder="Type here... e.g., INT. HOUSE - DAY&#10;CHARACTER&#10;Hello!"></textarea>
-        <button onclick="saveFile()">Save as .fountain</button>
-    </div>
-    <div id="preview">
-        <h2>Screenplay Preview</h2>
-        <div id="output"></div>
-    </div>
-    <script>
-        const input = document.getElementById('input');
-        const output = document.getElementById('output');
 
-        input.addEventListener('input', () => {
-            fountain.parse(input.value, (result) => {
-                output.innerHTML = result.html.script; // Render the screenplay HTML[9]
-            });
-        });
+<header>
+  <span>📝 FreeWriter</span>
+  <button id="downloadBtn">Download .fountain</button>
+  <button id="clearBtn">Clear</button>
+  <span style="margin-left:auto;">Autosave: on</span>
+</header>
 
-        function saveFile() {
-            const blob = new Blob([input.value], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'screenplay.fountain';
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-        <script>
-    const input = document.getElementById('input');
-    const output = document.getElementById('output');
+<div id="container">
+  <textarea id="editor" placeholder="Write Fountain here..."></textarea>
+  <div id="preview">Preview will appear here.</div>
+</div>
 
-    // Check if fountain is loaded
-    if (typeof fountain === 'undefined') {
-        console.error('Fountain.js failed to load. Check CDN or network.');
-    } else {
-        console.log('Fountain.js loaded successfully.');
-    }
+<script>
+const editor = document.getElementById('editor');
+const preview = document.getElementById('preview');
+const downloadBtn = document.getElementById('downloadBtn');
+const clearBtn = document.getElementById('clearBtn');
+const STORAGE_KEY = 'freewriter:fountain';
 
-    input.addEventListener('input', () => {
-        if (typeof fountain !== 'undefined') {
-            fountain.parse(input.value, (result) => {
-                if (result && result.html && result.html.script) {
-                    output.innerHTML = result.html.script;
-                    console.log('Parsing successful:', result);
-                } else {
-                    console.error('Parsing failed: Invalid result.', result);
-                }
-            });
-        } else {
-            output.innerHTML = '<p>Error: Fountain.js not loaded.</p>';
-        }
-    });
+function renderFountain(text) {
+  if (window.fountain && typeof fountain.parse === 'function') {
+    const result = fountain.parse(text || '');
+    return result.html && result.html.script ? result.html.script : '';
+  }
+  const esc = (text || '').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  return '<pre>' + esc + '</pre>';
+}
 
-    function saveFile() {
-        const blob = new Blob([input.value], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'screenplay.fountain';
-        a.click();
-        URL.revokeObjectURL(url);
-    }
+function updatePreview() {
+  preview.innerHTML = renderFountain(editor.value);
+}
+
+editor.addEventListener('input', () => {
+  updatePreview();
+  localStorage.setItem(STORAGE_KEY, editor.value);
+});
+
+// Load saved text
+const saved = localStorage.getItem(STORAGE_KEY);
+if (saved) editor.value = saved;
+
+// Initial sample text if empty
+if (!editor.value.trim()) {
+  editor.value = `INT. HOUSE - DAY
+
+A small, cluttered room. A person sits at a desk, typing.
+
+SAM
+  (to herself)
+  This is a quick sample.
+
+CUT TO:
+
+EXT. STREET - NIGHT
+
+Cars pass by.
+`;
+}
+
+updatePreview();
+
+// Download button
+downloadBtn.addEventListener('click', () => {
+  const blob = new Blob([editor.value], {type: 'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'script.fountain';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+// Clear button
+clearBtn.addEventListener('click', () => {
+  if (!confirm('Clear the editor?')) return;
+  editor.value = '';
+  updatePreview();
+  localStorage.removeItem(STORAGE_KEY);
+});
 </script>
-    </script>
+
 </body>
 </html>
