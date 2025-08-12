@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Essential for mobile scaling -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FILM FOLKS SCREENPLAY WRITER</title>
     <style>
         :root {
@@ -51,11 +51,7 @@
         #preview { flex: 1; padding: 20px; overflow-y: auto; background: var(--preview-bg); }
         textarea { width: 100%; height: 80%; font-size: var(--font-size); border: 1px solid var(--border-color); resize: none; background: var(--bg-color); color: var(--text-color); } /* Increased vertical size, with zoom variable */
         input { width: 70%; margin-bottom: 10px; padding: 5px; font-size: 12pt; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); display: inline-block; } /* Shortened fields */
-        #title-form button { margin-left: 5px;
-  padding: 5px 10px;
-  vertical-align: top;
-  position: relative;
-  top: -10px; /* negative moves up */ } /* Set button close to fields, within editor frame */
+        #title-form button { margin-left: 5px; padding: 5px 10px; vertical-align: top; position: relative; top: -10px; /* negative moves up */ } /* Set button close to fields, within editor frame */
         button { margin-top: 10px; padding: 3px 6px; margin-right: 5px; font-size: 10pt; } /* Reduced button size */
         .buttons-row { display: flex; align-items: center; flex-wrap: nowrap; } /* Keep buttons in one line */
         .scene-heading { font-weight: bold; text-transform: uppercase; margin: 1em 0; }
@@ -72,28 +68,20 @@
         body.fullscreen-mode #preview { display: none; }
         body.fullscreen-mode #format-buttons { position: absolute; top: 50%; right: 10px; transform: translateY(-50%); flex-direction: column; width: auto; padding: 0; border: none; background: transparent; } /* Vertical on right side */
         body.fullscreen-mode #format-buttons button { margin: 3px 0; }
-        body.fullscreen-mode #exit-fullscreen { display: block; position: absolute; top: 10px; right: 10px; } /* Next to dark mode */
+        body.fullscreen-mode #exit-fullscreen { display: block; position: absolute; top: 10px; right: 10px; padding: 5px 10px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); cursor: pointer; }
         body.fullscreen-mode textarea { height: 95%; }
         body.fullscreen-mode #title-form { display: none; }
         body.fullscreen-mode #title-display { display: block; position: absolute; top: 50%; left: 10px; transform: translateY(-50%); text-align: left; } /* Title and writer on left side */
         body.fullscreen-mode .buttons-row { display: none; }
         body.fullscreen-mode #auto-save-toggle { display: none; }
-        body.fullscreen-mode #dark-mode-toggle { position: absolute; top: 10px; right: 60px; } /* Dark mode in right corner next to zoom and exit fullscreen */
+        body.fullscreen-mode #dark-mode-toggle { position: absolute; top: 10px; right: 140px; padding: 5px 10px; background: none; border: 1px solid var(--border-color); cursor: pointer; } /* Adjusted for zoom buttons, same style */
         body.fullscreen-mode #fullscreen-toggle { display: none; } /* Hide fullscreen toggle in fullscreen */
-        body.fullscreen-mode #zoom-in { display: block; position: absolute; top: 10px; right: 40px; padding: 5px 10px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); cursor: pointer; } /* Zoom button before exit fullscreen */
-        #zoom-in { display: none; }
+        body.fullscreen-mode #zoom-in { display: block; position: absolute; top: 10px; right: 100px; padding: 5px 10px; background: none; border: 1px solid var(--border-color); cursor: pointer; font-size: 14px; } /* Small zoom in */
+        body.fullscreen-mode #zoom-out { display: block; position: absolute; top: 10px; right: 70px; padding: 5px 10px; background: none; border: 1px solid var(--border-color); cursor: pointer; font-size: 14px; } /* Small zoom out */
+        body.fullscreen-mode #reset-zoom { display: block; position: absolute; top: 10px; right: 40px; padding: 5px 10px; background: none; border: 1px solid var(--border-color); cursor: pointer; font-size: 14px; } /* Small reset */
+        #zoom-in, #zoom-out, #reset-zoom { padding: 5px 10px; background: none; border: 1px solid var(--border-color); cursor: pointer; font-size: 14px; margin: 0 2px; } /* Small in normal mode */
         #title-display { margin-top: 10px; font-size: 12pt; }
         #title-edit { margin-left: 5px; padding: 5px 10px; vertical-align: top; } /* Edit button close to display text, within editor frame */
-        /* Responsive adjustments for mobile */
-        @media screen and (max-width: 768px) {
-            body { flex-direction: column; }
-            #editor, #preview { flex: none; width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); }
-            #format-buttons { flex-direction: row; width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border-color); justify-content: space-around; }
-            #format-buttons button { margin: 5px; }
-            textarea { height: 60vh; font-size: 10pt; } /* Adjust for smaller screens */
-            button { font-size: 9pt; padding: 4px 8px; }
-            input { width: 100%; }
-        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
@@ -109,7 +97,7 @@
             <p id="display-writer"></p>
             <button id="title-edit" onclick="editTitle()">Edit Title</button>
         </div>
-        <textarea id="input" placeholder="Type Sreenplay here... e.g., INT. HOUSE - DAY
+        <textarea id="input" placeholder="Type Screenplay here... e.g., INT. HOUSE - DAY
 
 SANTHOSH
 Hello!"></textarea>
@@ -119,6 +107,9 @@ Hello!"></textarea>
             <button onclick="printPDF()">Print PDF</button>
             <button id="auto-save-toggle" onclick="toggleAutoSave()">Auto Save: Off</button>
             <button id="dark-mode-toggle" onclick="toggleDarkMode()">☀️</button>
+            <button id="zoom-in" onclick="zoomIn()">+</button>
+            <button id="zoom-out" onclick="zoomOut()">-</button>
+            <button id="reset-zoom" onclick="resetZoom()">R</button>
             <button id="fullscreen-toggle" onclick="toggleFullscreen()">⛶</button>
         </div>
     </div>
@@ -136,7 +127,6 @@ Hello!"></textarea>
         <h2>Screenplay Preview</h2>
         <div id="output"></div>
     </div>
-    <button id="zoom-in" onclick="zoomIn()">+</button>
     <button id="exit-fullscreen" onclick="toggleFullscreen()">□</button>
     <script>
         // Improved Fountain Parser with duplicate character merging, multi-line transition handling, and note handling
@@ -247,7 +237,7 @@ Hello!"></textarea>
             const start = input.selectionStart;
             const end = input.selectionEnd;
             const text = input.value;
-            const lines = text.split('\\n');
+            const lines = text.split('\n');
             // Find the line index of the cursor/selection
             let charCount = 0;
             let lineIndex = -1;
@@ -264,7 +254,7 @@ Hello!"></textarea>
             switch (type) {
                 case 'S': // Scene Heading: Uppercase and ensure format
                     line = line.toUpperCase();
-                    if (!/^(INT\\.|EXT\\.|EST\\.|INT\\/EXT\\.|I\\/E\\.)/i.test(line)) {
+                    if (!/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/i.test(line)) {
                         line = 'INT. ' + line; // Default to INT. if not specified
                     }
                     break;
@@ -278,7 +268,7 @@ Hello!"></textarea>
                 case 'D': // Dialogue: No specific change, but ensure it's after character (parser handles)
                     break;
                 case 'P': // Parenthetical: Wrap in parentheses if not already
-                    if (!/^\\(.+\\)$/.test(line)) {
+                    if (!/^\((.+\))$/.test(line)) {
                         line = '(' + line + ')';
                     }
                     break;
@@ -296,11 +286,11 @@ Hello!"></textarea>
             }
             // Replace the line, preserving leading/trailing spaces
             const originalLine = lines[lineIndex];
-            const leadingSpaces = originalLine.match(/^\\s\*/)[0];
-            const trailingSpaces = originalLine.match(/\\s\*$/)[0];
+            const leadingSpaces = originalLine.match(/^\s*/)[0];
+            const trailingSpaces = originalLine.match(/\s*$/)[0];
             lines[lineIndex] = leadingSpaces + line + trailingSpaces;
             // Update textarea value and restore cursor
-            input.value = lines.join('\\n');
+            input.value = lines.join('\n');
             input.selectionStart = input.selectionEnd = start; // Reset cursor
             updatePreview(); // Refresh preview
         }
@@ -311,7 +301,7 @@ Hello!"></textarea>
             a.href = url;
             if (auto) {
                 const now = new Date();
-                const timestamp = now.toISOString().replace(/T/, '\_').replace(/:/g, '-').split('.')[0];
+                const timestamp = now.toISOString().replace(/T/, '_').replace(/:/g, '-').split('.')[0];
                 a.download = `screenplay_${timestamp}.fountain`;
             } else {
                 a.download = 'screenplay.fountain';
@@ -355,12 +345,21 @@ Hello!"></textarea>
             if (currentFontSize > 24) currentFontSize = 24; // Max size
             document.documentElement.style.setProperty('--font-size', `${currentFontSize}pt`);
         }
+        function zoomOut() {
+            currentFontSize -= 2;
+            if (currentFontSize < 8) currentFontSize = 8; // Min size
+            document.documentElement.style.setProperty('--font-size', `${currentFontSize}pt`);
+        }
+        function resetZoom() {
+            currentFontSize = 12;
+            document.documentElement.style.setProperty('--font-size', `${currentFontSize}pt`);
+        }
         function generatePDF(forPrint = false) {
             if (!window.jspdf) {
                 alert('jsPDF failed to load. Check your internet or try a different browser.');
                 return;
             }
-            if (output.innerHTML.trim() = '' || output.innerHTML = '<p>After you type on the left, the preview will appear here.</p>') {
+            if (output.innerHTML.trim() === '' || output.innerHTML === '<p>After you type on the left, the preview will appear here.</p>') {
                 alert('No content to process. Add screenplay text first.');
                 return;
             }
@@ -388,7 +387,7 @@ Hello!"></textarea>
             const rightMargin = pageWidth - 72; // 1 inch right
             const lineHeight = 12; // Standard screenplay line height
             elements.forEach(el => {
-                let text = el.textContent.trim().replace(/\\s+/g, ' '); // Clean extra spaces
+                let text = el.textContent.trim().replace(/\s+/g, ' '); // Clean extra spaces
                 let x = leftMargin;
                 const className = el.className;
                 // Reset font before each element
@@ -430,7 +429,7 @@ Hello!"></textarea>
             });
             if (forPrint) {
                 doc.autoPrint({ variant: 'non-conform' });
-                window.open(doc.output('bloburl'), '\_blank');
+                window.open(doc.output('bloburl'), '_blank');
             } else {
                 try {
                     const filename = `${title}.pdf`;
