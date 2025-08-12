@@ -1,35 +1,29 @@
-<script src="https://unpkg.com/fountain-js@1.9.1/dist/fountain.js"></script>
-<script>
-  (function () {
-    const textarea = document.getElementById('editor');   // your textarea id
-    const preview  = document.getElementById('preview');  // your preview div id
+const editor = document.getElementById('editor');
+const preview = document.getElementById('preview');
 
-    if (typeof Fountain === 'undefined') {
-      preview.innerHTML = '<span style="color:#c00">Fountain library failed to load.</span>';
+if (typeof Fountain === 'undefined') {
+  preview.innerHTML = '<span style="color:red">⚠ Fountain library failed to load.</span>';
+} else {
+  const fountain = new Fountain();
+
+  function render() {
+    const text = editor.value || '';
+    if (!text.trim()) {
+      preview.innerHTML = '<em>Live preview...</em>';
       return;
     }
-
-    const fountain = new Fountain();
-
-    function updatePreview() {
-      const text = textarea.value;
-      if (!text.trim()) {
-        preview.innerHTML = '<em>Start typing to see preview…</em>';
-        return;
+    try {
+      const parsed = fountain.parse(text, true);
+      if (parsed && parsed.html && parsed.html.script) {
+        preview.innerHTML = `<div class="screenplay-preview">${parsed.html.script}</div>`;
+      } else {
+        preview.textContent = text;
       }
-      try {
-        const parsed = fountain.parse(text, true); // include tokens
-        if (parsed && parsed.html && parsed.html.script) {
-          preview.innerHTML = '<div class="screenplay-preview">' + parsed.html.script + '</div>';
-        } else {
-          preview.textContent = 'Parsed, but no html.script output.';
-        }
-      } catch (e) {
-        preview.textContent = 'Fountain parse error: ' + e.message;
-      }
+    } catch (e) {
+      preview.textContent = 'Parsing error: ' + e.message;
     }
+  }
 
-    textarea.addEventListener('input', updatePreview);
-    updatePreview();
-  })();
-</script>
+  editor.addEventListener('input', render);
+  render();
+}
