@@ -190,6 +190,7 @@
                 // Apply styles and positioning
                 if (className === 'scene-heading') {
                     doc.setFont('courier', 'bold');
+                    text = text.toUpperCase(); // Force uppercase to match preview
                     x = leftMargin;
                     y += lineHeight; // Extra space above scenes
                 } else if (className === 'character') {
