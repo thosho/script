@@ -10,6 +10,7 @@
             --text-color: #000;
             --border-color: #ccc;
             --preview-bg: #f0f0f0;
+            --font-size: 12pt; /* Default font size for zoom */
         }
         body.dark-mode {
             --bg-color: #1e1e1e;
@@ -48,10 +49,9 @@
             cursor: pointer; 
         }
         #preview { flex: 1; padding: 20px; overflow-y: auto; background: var(--preview-bg); }
-        textarea { width: 100%; height: 80%; font-size: 12pt; border: 1px solid var(--border-color); resize: none; background: var(--bg-color); color: var(--text-color); } /* Increased vertical size */
+        textarea { width: 100%; height: 80%; font-size: var(--font-size); border: 1px solid var(--border-color); resize: none; background: var(--bg-color); color: var(--text-color); } /* Increased vertical size, with zoom variable */
         input { width: 70%; margin-bottom: 10px; padding: 5px; font-size: 12pt; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); display: inline-block; } /* Shortened fields */
-        #title-form button { margin-left: 5px; padding: 5px 10px; vertical-align: top; position: relative;
-  top: -10px; /* negative moves up */ } /* Set button close to fields, within editor frame */
+        #title-form button { margin-left: 5px; padding: 5px 10px; vertical-align: top; } /* Set button close to fields, within editor frame */
         button { margin-top: 10px; padding: 3px 6px; margin-right: 5px; font-size: 10pt; } /* Reduced button size */
         .buttons-row { display: flex; align-items: center; flex-wrap: nowrap; } /* Keep buttons in one line */
         .scene-heading { font-weight: bold; text-transform: uppercase; margin: 1em 0; }
@@ -64,18 +64,20 @@
         #output { max-width: 37em; margin: 0 auto; font-size: 12pt; line-height: 1.2; }
         #dark-mode-toggle, #fullscreen-toggle { cursor: pointer; font-size: 16px; background: none; border: none; }
         #exit-fullscreen { display: none; position: absolute; top: 10px; right: 10px; padding: 5px 10px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); cursor: pointer; }
-        body.fullscreen-mode #editor { flex: auto; width: 80%; margin: 0 auto; padding: 10px; } /* Editor centered */
+        body.fullscreen-mode #editor { flex: auto; width: 70%; margin: 0 auto; padding: 10px; } /* Reduced horizontal size, centered */
         body.fullscreen-mode #preview { display: none; }
         body.fullscreen-mode #format-buttons { position: absolute; top: 50%; right: 10px; transform: translateY(-50%); flex-direction: column; width: auto; padding: 0; border: none; background: transparent; } /* Vertical on right side */
         body.fullscreen-mode #format-buttons button { margin: 3px 0; }
-        body.fullscreen-mode #exit-fullscreen { display: block; position: absolute; top: 10px; right: 40px; } /* Next to dark mode */
+        body.fullscreen-mode #exit-fullscreen { display: block; position: absolute; top: 10px; right: 10px; } /* Next to dark mode */
         body.fullscreen-mode textarea { height: 95%; }
         body.fullscreen-mode #title-form { display: none; }
         body.fullscreen-mode #title-display { display: block; position: absolute; top: 50%; left: 10px; transform: translateY(-50%); text-align: left; } /* Title and writer on left side */
         body.fullscreen-mode .buttons-row { display: none; }
         body.fullscreen-mode #auto-save-toggle { display: none; }
-        body.fullscreen-mode #dark-mode-toggle { position: absolute; top: 10px; right: 10px; } /* Dark mode in right corner next to exit fullscreen */
+        body.fullscreen-mode #dark-mode-toggle { position: absolute; top: 10px; right: 60px; } /* Dark mode in right corner next to zoom and exit fullscreen */
         body.fullscreen-mode #fullscreen-toggle { display: none; } /* Hide fullscreen toggle in fullscreen */
+        body.fullscreen-mode #zoom-in { display: block; position: absolute; top: 10px; right: 40px; padding: 5px 10px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); cursor: pointer; } /* Zoom button before exit fullscreen */
+        #zoom-in { display: none; }
         #title-display { margin-top: 10px; font-size: 12pt; }
         #title-edit { margin-left: 5px; padding: 5px 10px; vertical-align: top; } /* Edit button close to display text, within editor frame */
     </style>
@@ -86,7 +88,7 @@
         <div id="title-form">
             <input id="title" placeholder="Screenplay Title">
             <input id="writer" placeholder="Writer Name">
-            <button onclick="setTitle()">Save Title</button>
+            <button onclick="setTitle()">Set</button>
         </div>
         <div id="title-display" style="display: none;">
             <p id="display-title"></p>
@@ -114,9 +116,10 @@
         <button onclick="applyFormat('N')">N</button>
     </div>
     <div id="preview">
-        <h2>Live Screenplay Preview</h2>
+        <h2>Screenplay Preview</h2>
         <div id="output"></div>
     </div>
+    <button id="zoom-in" onclick="zoomIn()">+</button>
     <button id="exit-fullscreen" onclick="toggleFullscreen()">□</button>
     <script>
         // Improved Fountain Parser with duplicate character merging, multi-line transition handling, and note handling
@@ -217,6 +220,7 @@
         let autoSaveInterval = null;
         let isAutoSaveOn = false;
         let isFullscreen = false;
+        let currentFontSize = 12; // Initial font size in pt
 
         function updatePreview() {
             if (input.value.trim() === '') {
@@ -351,6 +355,13 @@
         function editTitle() {
             titleForm.style.display = 'block';
             titleDisplay.style.display = 'none';
+        }
+
+        // Zoom function (increases font size by 2pt each time, up to a max)
+        function zoomIn() {
+            currentFontSize += 2;
+            if (currentFontSize > 24) currentFontSize = 24; // Max size
+            document.documentElement.style.setProperty('--font-size', `${currentFontSize}pt`);
         }
 
         function generatePDF(forPrint = false) {
