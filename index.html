@@ -37,10 +37,10 @@
         }
         #format-buttons button { 
             margin: 5px 0; 
-            padding: 5px; 
-            width: 30px; 
-            height: 30px; 
-            font-size: 14pt; 
+            padding: 3px; 
+            width: 25px; 
+            height: 25px; 
+            font-size: 12pt; 
             font-weight: bold; 
             background: var(--bg-color); 
             color: var(--text-color); 
@@ -48,7 +48,7 @@
             cursor: pointer; 
         }
         #preview { flex: 1; padding: 20px; overflow-y: auto; background: var(--preview-bg); }
-        textarea { width: 100%; height: 70%; font-size: 12pt; border: 1px solid var(--border-color); resize: none; background: var(--bg-color); color: var(--text-color); }
+        textarea { width: 100%; height: 75%; font-size: 12pt; border: 1px solid var(--border-color); resize: none; background: var(--bg-color); color: var(--text-color); }
         input { width: 100%; margin-bottom: 10px; padding: 5px; font-size: 12pt; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); }
         button { margin-top: 10px; padding: 5px 10px; margin-right: 10px; }
         .scene-heading { font-weight: bold; text-transform: uppercase; margin: 1em 0; }
@@ -59,8 +59,14 @@
         .transition { text-transform: uppercase; text-align: right; margin: 1em 0; }
         .note { font-style: italic; color: #666; margin: 1em 0; } /* Style for notes in preview */
         #output { max-width: 37em; margin: 0 auto; font-size: 12pt; line-height: 1.2; }
-        #dark-mode-toggle { cursor: pointer; font-size: 20px; background: none; border: none; }
-        #auto-save-toggle { padding: 5px 10px; }
+        #dark-mode-toggle, #fullscreen-toggle { cursor: pointer; font-size: 16px; background: none; border: none; }
+        #exit-fullscreen { display: none; position: absolute; top: 10px; right: 10px; padding: 5px 10px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); cursor: pointer; }
+        body.fullscreen-mode #editor { flex: auto; width: 100%; }
+        body.fullscreen-mode #preview { display: none; }
+        body.fullscreen-mode #format-buttons { position: absolute; top: 50%; right: 10px; transform: translateY(-50%); width: auto; padding: 0; border: none; background: transparent; }
+        body.fullscreen-mode #format-buttons button { margin: 3px 0; }
+        body.fullscreen-mode #exit-fullscreen { display: block; }
+        body.fullscreen-mode textarea { height: 90%; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
@@ -74,6 +80,7 @@
         <button onclick="printPDF()">Print PDF</button>
         <button id="auto-save-toggle" onclick="toggleAutoSave()">Auto Save: Off</button>
         <button id="dark-mode-toggle" onclick="toggleDarkMode()">☀️</button>
+        <button id="fullscreen-toggle" onclick="toggleFullscreen()">⛶</button>
     </div>
     <div id="format-buttons">
         <button onclick="applyFormat('S')">S</button>
@@ -89,6 +96,7 @@
         <h2>Live Screenplay Preview</h2>
         <div id="output"></div>
     </div>
+    <button id="exit-fullscreen" onclick="toggleFullscreen()">□</button>
     <script>
         // Improved Fountain Parser with duplicate character merging, multi-line transition handling, and note handling
         const fountainParser = (function() {
@@ -177,10 +185,13 @@
         const output = document.getElementById('output');
         const toggleButton = document.getElementById('dark-mode-toggle');
         const autoSaveButton = document.getElementById('auto-save-toggle');
+        const fullscreenToggle = document.getElementById('fullscreen-toggle');
+        const exitFullscreen = document.getElementById('exit-fullscreen');
         const titleInput = document.getElementById('title');
         const writerInput = document.getElementById('writer');
         let autoSaveInterval = null;
         let isAutoSaveOn = false;
+        let isFullscreen = false;
 
         function updatePreview() {
             if (input.value.trim() === '') {
@@ -293,6 +304,11 @@
             }
         }
 
+        function toggleFullscreen() {
+            isFullscreen = !isFullscreen;
+            document.body.classList.toggle('fullscreen-mode', isFullscreen);
+        }
+
         function generatePDF(forPrint = false) {
             if (!window.jspdf) {
                 alert('jsPDF failed to load. Check your internet or try a different browser.');
@@ -380,7 +396,8 @@
                 window.open(doc.output('bloburl'), '_blank');
             } else {
                 try {
-                    doc.save('screenplay.pdf');
+                    const filename = `${titleInput.value.trim() || 'screenplay'}.pdf`;
+                    doc.save(filename);
                 } catch (error) {
                     console.error('PDF save failed:', error);
                     alert('Save failed. Check console or try another browser.');
@@ -388,7 +405,7 @@
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = 'screenplay.pdf';
+                    a.download = `${titleInput.value.trim() || 'screenplay'}.pdf`;
                     a.click();
                     URL.revokeObjectURL(url);
                 }
