@@ -25,7 +25,7 @@
             background: var(--bg-color); 
             color: var(--text-color); 
         }
-        #editor { flex: 1; padding: 20px; border-right: 1px solid var(--border-color); }
+        #editor { flex: 1.2; padding: 20px; border-right: 1px solid var(--border-color); } /* Increased horizontal space */
         #format-buttons { 
             display: flex; 
             flex-direction: column; 
@@ -50,7 +50,7 @@
         #preview { flex: 1; padding: 20px; overflow-y: auto; background: var(--preview-bg); }
         textarea { width: 100%; height: 75%; font-size: 12pt; border: 1px solid var(--border-color); resize: none; background: var(--bg-color); color: var(--text-color); }
         input { width: 100%; margin-bottom: 10px; padding: 5px; font-size: 12pt; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); }
-        button { margin-top: 10px; padding: 5px 10px; margin-right: 10px; }
+        button { margin-top: 10px; padding: 3px 6px; margin-right: 5px; font-size: 10pt; } /* Reduced button size */
         .scene-heading { font-weight: bold; text-transform: uppercase; margin: 1em 0; }
         .action { margin: 1em 0; }
         .character { text-transform: uppercase; margin: 2em 0 0 0; text-align: left; width: 60%; margin-left: 20%; }
@@ -61,23 +61,41 @@
         #output { max-width: 37em; margin: 0 auto; font-size: 12pt; line-height: 1.2; }
         #dark-mode-toggle, #fullscreen-toggle { cursor: pointer; font-size: 16px; background: none; border: none; }
         #exit-fullscreen { display: none; position: absolute; top: 10px; right: 10px; padding: 5px 10px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); cursor: pointer; }
-        body.fullscreen-mode #editor { flex: auto; width: 100%; }
+        body.fullscreen-mode #editor { flex: auto; width: 100%; padding: 10px; }
         body.fullscreen-mode #preview { display: none; }
-        body.fullscreen-mode #format-buttons { position: absolute; top: 50%; right: 10px; transform: translateY(-50%); width: auto; padding: 0; border: none; background: transparent; }
-        body.fullscreen-mode #format-buttons button { margin: 3px 0; }
+        body.fullscreen-mode #format-buttons { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); flex-direction: row; width: auto; padding: 0; border: none; background: transparent; }
+        body.fullscreen-mode #format-buttons button { margin: 0 3px; }
         body.fullscreen-mode #exit-fullscreen { display: block; }
-        body.fullscreen-mode textarea { height: 90%; }
+        body.fullscreen-mode textarea { height: 95%; }
+        body.fullscreen-mode #title-form { display: none; }
+        body.fullscreen-mode #title-display { display: none; }
+        body.fullscreen-mode .save-buttons { display: none; }
+        body.fullscreen-mode #auto-save-toggle { display: none; }
+        body.fullscreen-mode #dark-mode-toggle, body.fullscreen-mode #fullscreen-toggle { position: absolute; top: 10px; right: 60px; } /* Right corner for dark and fullscreen */
+        body.fullscreen-mode #fullscreen-toggle { display: none; } /* Hide fullscreen toggle in fullscreen */
+        #title-display { margin-top: 10px; font-size: 12pt; }
+        #title-edit { padding: 3px 6px; font-size: 10pt; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <div id="editor">
-        <input id="title" placeholder="Screenplay Title">
-        <input id="writer" placeholder="Writer Name">
+        <div id="title-form">
+            <input id="title" placeholder="Screenplay Title">
+            <input id="writer" placeholder="Writer Name">
+            <button onclick="setTitle()">Set</button>
+        </div>
+        <div id="title-display" style="display: none;">
+            <p id="display-title"></p>
+            <p id="display-writer"></p>
+            <button id="title-edit" onclick="editTitle()">Edit Title</button>
+        </div>
         <textarea id="input" placeholder="Type Fountain markup here... e.g., INT. HOUSE - DAY&#10;&#10;JOHN&#10;Hello!"></textarea>
-        <button onclick="saveFile()">Save as .fountain</button>
-        <button onclick="saveAsPDF()">Save as PDF</button>
-        <button onclick="printPDF()">Print PDF</button>
+        <div class="save-buttons">
+            <button onclick="saveFile()">Save as .fountain</button>
+            <button onclick="saveAsPDF()">Save as PDF</button>
+            <button onclick="printPDF()">Print PDF</button>
+        </div>
         <button id="auto-save-toggle" onclick="toggleAutoSave()">Auto Save: Off</button>
         <button id="dark-mode-toggle" onclick="toggleDarkMode()">☀️</button>
         <button id="fullscreen-toggle" onclick="toggleFullscreen()">⛶</button>
@@ -189,6 +207,10 @@
         const exitFullscreen = document.getElementById('exit-fullscreen');
         const titleInput = document.getElementById('title');
         const writerInput = document.getElementById('writer');
+        const titleForm = document.getElementById('title-form');
+        const titleDisplay = document.getElementById('title-display');
+        const displayTitle = document.getElementById('display-title');
+        const displayWriter = document.getElementById('display-writer');
         let autoSaveInterval = null;
         let isAutoSaveOn = false;
         let isFullscreen = false;
@@ -307,6 +329,25 @@
         function toggleFullscreen() {
             isFullscreen = !isFullscreen;
             document.body.classList.toggle('fullscreen-mode', isFullscreen);
+            if (!isFullscreen) {
+                fullscreenToggle.style.display = 'inline-block'; // Show fullscreen toggle in normal mode
+            }
+        }
+
+        function setTitle() {
+            const title = titleInput.value.trim();
+            const writer = writerInput.value.trim();
+            if (title || writer) {
+                displayTitle.textContent = title ? `Title: ${title}` : '';
+                displayWriter.textContent = writer ? `Writer: ${writer}` : '';
+                titleForm.style.display = 'none';
+                titleDisplay.style.display = 'block';
+            }
+        }
+
+        function editTitle() {
+            titleForm.style.display = 'block';
+            titleDisplay.style.display = 'none';
         }
 
         function generatePDF(forPrint = false) {
@@ -325,8 +366,8 @@
             doc.setFontSize(12);
 
             // Add title page
-            const title = titleInput.value.trim().toUpperCase() || 'UNTITLED SCREENPLAY';
-            const writer = writerInput.value.trim() || 'Unknown Writer';
+            const title = (displayTitle.textContent.replace('Title: ', '') || titleInput.value.trim() || 'UNTITLED SCREENPLAY').toUpperCase();
+            const writer = displayWriter.textContent.replace('Writer: ', '') || writerInput.value.trim() || 'Unknown Writer';
             doc.setFontSize(24);
             doc.setFont('courier', 'bold');
             doc.text(title, 297.5, 421, { align: 'center' }); // Center on A4
@@ -396,7 +437,7 @@
                 window.open(doc.output('bloburl'), '_blank');
             } else {
                 try {
-                    const filename = `${titleInput.value.trim() || 'screenplay'}.pdf`;
+                    const filename = `${title}.pdf`;
                     doc.save(filename);
                 } catch (error) {
                     console.error('PDF save failed:', error);
@@ -405,7 +446,7 @@
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `${titleInput.value.trim() || 'screenplay'}.pdf`;
+                    a.download = `${title}.pdf`;
                     a.click();
                     URL.revokeObjectURL(url);
                 }
