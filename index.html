@@ -48,9 +48,11 @@
             cursor: pointer; 
         }
         #preview { flex: 1; padding: 20px; overflow-y: auto; background: var(--preview-bg); }
-        textarea { width: 100%; height: 75%; font-size: 12pt; border: 1px solid var(--border-color); resize: none; background: var(--bg-color); color: var(--text-color); }
-        input { width: 100%; margin-bottom: 10px; padding: 5px; font-size: 12pt; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); }
+        textarea { width: 100%; height: 80%; font-size: 12pt; border: 1px solid var(--border-color); resize: none; background: var(--bg-color); color: var(--text-color); } /* Increased vertical size */
+        input { width: 70%; margin-bottom: 10px; padding: 5px; font-size: 12pt; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); display: inline-block; } /* Shortened fields */
+        #title-form button { margin-left: 5px; padding: 5px 10px; vertical-align: top; }
         button { margin-top: 10px; padding: 3px 6px; margin-right: 5px; font-size: 10pt; } /* Reduced button size */
+        .buttons-row { display: flex; align-items: center; flex-wrap: nowrap; } /* Keep buttons in one line */
         .scene-heading { font-weight: bold; text-transform: uppercase; margin: 1em 0; }
         .action { margin: 1em 0; }
         .character { text-transform: uppercase; margin: 2em 0 0 0; text-align: left; width: 60%; margin-left: 20%; }
@@ -67,9 +69,8 @@
         body.fullscreen-mode #format-buttons button { margin: 0 3px; }
         body.fullscreen-mode #exit-fullscreen { display: block; }
         body.fullscreen-mode textarea { height: 95%; }
-        body.fullscreen-mode #title-form { display: none; }
-        body.fullscreen-mode #title-display { display: none; }
-        body.fullscreen-mode .save-buttons { display: none; }
+        body.fullscreen-mode #title-form, body.fullscreen-mode #title-display { display: none; } /* Hide title fields in fullscreen */
+        body.fullscreen-mode .buttons-row { display: none; }
         body.fullscreen-mode #auto-save-toggle { display: none; }
         body.fullscreen-mode #dark-mode-toggle, body.fullscreen-mode #fullscreen-toggle { position: absolute; top: 10px; right: 60px; } /* Right corner for dark and fullscreen */
         body.fullscreen-mode #fullscreen-toggle { display: none; } /* Hide fullscreen toggle in fullscreen */
@@ -91,14 +92,14 @@
             <button id="title-edit" onclick="editTitle()">Edit Title</button>
         </div>
         <textarea id="input" placeholder="Type Fountain markup here... e.g., INT. HOUSE - DAY&#10;&#10;JOHN&#10;Hello!"></textarea>
-        <div class="save-buttons">
+        <div class="buttons-row">
             <button onclick="saveFile()">Save as .fountain</button>
             <button onclick="saveAsPDF()">Save as PDF</button>
             <button onclick="printPDF()">Print PDF</button>
+            <button id="auto-save-toggle" onclick="toggleAutoSave()">Auto Save: Off</button>
+            <button id="dark-mode-toggle" onclick="toggleDarkMode()">☀️</button>
+            <button id="fullscreen-toggle" onclick="toggleFullscreen()">⛶</button>
         </div>
-        <button id="auto-save-toggle" onclick="toggleAutoSave()">Auto Save: Off</button>
-        <button id="dark-mode-toggle" onclick="toggleDarkMode()">☀️</button>
-        <button id="fullscreen-toggle" onclick="toggleFullscreen()">⛶</button>
     </div>
     <div id="format-buttons">
         <button onclick="applyFormat('S')">S</button>
