@@ -56,6 +56,7 @@
         .dialogue { margin: 0 0 0 10%; width: 50%; }
         .parenthetical { margin: 0 0 0 15%; width: 45%; font-style: italic; }
         .transition { text-transform: uppercase; text-align: right; margin: 1em 0; }
+        .note { font-style: italic; color: #666; margin: 1em 0; } /* Style for notes in preview */
         #output { max-width: 37em; margin: 0 auto; font-size: 12pt; line-height: 1.2; }
         #dark-mode-toggle { cursor: pointer; font-size: 20px; background: none; border: none; }
     </style>
@@ -72,6 +73,7 @@
     </div>
     <div id="format-buttons">
         <button onclick="applyFormat('S')">S</button>
+        <button onclick="applyFormat('A')">A</button>
         <button onclick="applyFormat('C')">C</button>
         <button onclick="applyFormat('D')">D</button>
         <button onclick="applyFormat('P')">P</button>
@@ -84,7 +86,7 @@
         <div id="output"></div>
     </div>
     <script>
-        // Improved Fountain Parser with duplicate character merging and multi-line transition handling
+        // Improved Fountain Parser with duplicate character merging, multi-line transition handling, and note handling
         const fountainParser = (function() {
             const rules = {
                 scene_heading: /^((?:i(?:nt)?|e(?:xt)?|est|int\/ext|I\/E)[. ].+)|^(?:\.(?!.+ ))(.+)/i,
@@ -92,7 +94,8 @@
                 character: /^(?!\@)([A-Z0-9]{2,})(?:[\s^]+)?$/,
                 dialogue: /^[^\n]+$/,
                 parenthetical: /^\((.+)\)$/,
-                transition: /^((?:fade |cut |smash cut |dissolve )?(?:in|out|to)| iris out).?$/i
+                transition: /^((?:fade |cut |smash cut |dissolve )?(?:in|out|to)| iris out).?$/i,
+                note: /^Notes:-/i
             };
 
             function parse(text) {
@@ -105,6 +108,12 @@
                 lines.forEach(line => {
                     line = line.trim();
                     if (!line) return;
+
+                    // Handle notes: Render in italics for preview
+                    if (rules.note.test(line)) {
+                        html += `<p class="note">${line}</p>`;
+                        return; // Notes are not part of screenplay flow
+                    }
 
                     // Handle duplicate characters
                     if (rules.character.test(line)) {
@@ -205,11 +214,14 @@
                         line = 'INT. ' + line; // Default to INT. if not specified
                     }
                     break;
+                case 'A': // Action Description: Treat as general action (no change, default margin)
+                case 'G': // General Text: Same as action, ensure left margin (no indent)
+                    // No specific change; parser handles as action with left margin
+                    break;
                 case 'C': // Character: Uppercase
                     line = line.toUpperCase();
                     break;
                 case 'D': // Dialogue: No specific change, but ensure it's after character (parser handles)
-                    // For now, just leave as is; user can type
                     break;
                 case 'P': // Parenthetical: Wrap in parentheses if not already
                     if (!/^\(.+\)$/.test(line)) {
@@ -222,12 +234,9 @@
                         line += ':';
                     }
                     break;
-                case 'G': // General Text (Action): Reset to plain
-                    // No change needed; parser treats as action
-                    break;
-                case 'N': // Note: Wrap in [[ ]] for Fountain notes
-                    if (!/^\[\[.+\]\]$/.test(line)) {
-                        line = '[[' + line + ']]';
+                case 'N': // Note: Prefix with "Notes:- " if not already
+                    if (!/^Notes:-/i.test(line)) {
+                        line = 'Notes:- ' + line;
                     }
                     break;
             }
@@ -270,7 +279,7 @@
             doc.setFont('courier', 'normal');
             doc.setFontSize(12);
 
-            const elements = output.querySelectorAll('p');
+            const elements = output.querySelectorAll('p:not(.note)'); // Skip notes for PDF
             let y = 72; // Starting Y (1 inch margin)
             const pageWidth = 595; // A4 width in pt
             const pageHeight = 842; // A4 height in pt
