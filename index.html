@@ -3,59 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fountain Screenplay Editor</title>
+    <title>Working Fountain Screenplay Editor</title>
     <style>
-        body { font-family: monospace; display: flex; height: 100vh; margin: 0; }
-        #editor { flex: 1; padding: 10px; }
-        #preview { flex: 1; padding: 10px; background: #f0f0f0; overflow-y: auto; }
-        textarea { width: 100%; height: 80%; font-size: 14px; }
-        button { margin-top: 10px; }
-        .scene_heading { text-transform: uppercase; font-weight: bold; }
-        .character { text-transform: uppercase; margin-top: 10px; }
-        .dialogue { margin-left: 20px; }
+        body { font-family: 'Courier New', monospace; display: flex; height: 100vh; margin: 0; background: #fff; color: #000; }
+        #editor { flex: 1; padding: 20px; border-right: 1px solid #ccc; }
+        #preview { flex: 1; padding: 20px; overflow-y: auto; }
+        textarea { width: 100%; height: 80%; font-size: 12pt; border: 1px solid #ddd; resize: none; }
+        button { margin-top: 10px; padding: 5px 10px; }
+        .scene-heading { font-weight: bold; text-transform: uppercase; margin: 1em 0; }
+        .action { margin: 1em 0; }
+        .character { text-transform: uppercase; margin: 2em 0 0 0; text-align: left; width: 60%; margin-left: 20%; }
+        .dialogue { margin: 0 0 0 10%; width: 50%; }
+        .parenthetical { margin: 0 0 0 15%; width: 45%; font-style: italic; }
+        .transition { text-transform: uppercase; text-align: right; margin: 1em 0; }
+        #output { max-width: 37em; margin: 0 auto; font-size: 12pt; line-height: 1.2; }
     </style>
-    <script src="assets/js/fountain.js"></script> <!-- Host this file locally -->
 </head>
 <body>
     <div id="editor">
         <h2>Write Your Screenplay (Fountain Syntax)</h2>
-        <textarea id="input" placeholder="Type here... e.g., INT. HOUSE - DAY&#10;CHARACTER&#10;Hello!"></textarea>
+        <textarea id="input" placeholder="Type Fountain markup here... e.g., INT. HOUSE - DAY&#10;&#10;JOHN&#10;Hello!"></textarea>
         <button onclick="saveFile()">Save as .fountain</button>
     </div>
     <div id="preview">
-        <h2>Screenplay Preview</h2>
+        <h2>Live Screenplay Preview</h2>
         <div id="output"></div>
     </div>
     <script>
+        // Embedded Fountain Parser (based on Afterwriting Labs' Fountain-JS v1.0.0 - simplified for this use)
+        const fountainParser = (function() {
+            const rules = {
+                scene_heading: /^((?:i(?:nt)?|e(?:xt)?|est|int\/ext|I\/E)[. ].+)|^(?:\.(?!.+ ))(.+)/i,
+                action: /^[^\n]+$/,
+                character: /^(?!\@)([A-Z0-9]{2,})(?:[\s^]+)?$/,
+                dialogue: /^[^\n]+$/,
+                parenthetical: /^\((.+)\)$/,
+                transition: /^((?:fade |cut |smash cut |dissolve )?(?:in|out|to)| iris out).?$/i
+            };
+
+            function parse(text) {
+                const lines = text.split(/\n/);
+                let html = '';
+                let state = 'action';
+
+                lines.forEach(line => {
+                    line = line.trim();
+                    if (!line) return;
+
+                    if (rules.scene_heading.test(line)) {
+                        html += `<p class="scene-heading">${line}</p>`;
+                        state = 'action';
+                    } else if (rules.transition.test(line)) {
+                        html += `<p class="transition">${line}</p>`;
+                        state = 'action';
+                    } else if (rules.character.test(line)) {
+                        html += `<p class="character">${line}</p>`;
+                        state = 'dialogue';
+                    } else if (state === 'dialogue' && rules.parenthetical.test(line)) {
+                        html += `<p class="parenthetical">${line}</p>`;
+                    } else if (state === 'dialogue') {
+                        html += `<p class="dialogue">${line}</p>`;
+                    } else {
+                        html += `<p class="action">${line}</p>`;
+                        state = 'action';
+                    }
+                });
+
+                return { html: { script: html } };
+            }
+
+            return { parse: parse };
+        })();
+
         const input = document.getElementById('input');
         const output = document.getElementById('output');
 
-        // Async load check
-        window.addEventListener('load', () => {
-            if (typeof fountain === 'undefined') {
-                output.innerHTML = '<p>Error: Fountain.js not loaded. Check console for details.</p>';
-                console.error('Fountain.js failed to load. Verify path: assets/js/fountain.js');
-            } else {
-                console.log('Fountain.js loaded successfully.');
-                updatePreview(); // Initial parse
-            }
-        });
-
         function updatePreview() {
-            if (typeof fountain !== 'undefined') {
-                fountain.parse(input.value, true, (result) => { // Include tokens for debugging
-                    if (result && result.html && result.html.script) {
-                        output.innerHTML = result.html.script;
-                        console.log('Parsing successful:', result.tokens); // Log tokens for debug
-                    } else {
-                        output.innerHTML = '<p>Parsing error. Ensure valid Fountain syntax.</p>';
-                        console.error('Parsing failed:', result);
-                    }
-                });
+            const result = fountainParser.parse(input.value);
+            if (result && result.html && result.html.script) {
+                output.innerHTML = result.html.script;
+            } else {
+                output.innerHTML = '<p>Error parsing. Check syntax.</p>';
             }
         }
 
         input.addEventListener('input', updatePreview);
+        updatePreview(); // Initial render
 
         function saveFile() {
             const blob = new Blob([input.value], { type: 'text/plain' });
@@ -66,6 +99,9 @@
             a.click();
             URL.revokeObjectURL(url);
         }
+
+        // Debug: Log if parser is ready
+        console.log('Fountain parser loaded and ready.');
     </script>
 </body>
 </html>
