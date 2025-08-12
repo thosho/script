@@ -18,7 +18,7 @@
         .transition { text-transform: uppercase; text-align: right; margin: 1em 0; }
         #output { max-width: 37em; margin: 0 auto; font-size: 12pt; line-height: 1.2; }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <div id="editor">
@@ -103,8 +103,12 @@
         }
 
         function saveAsPDF() {
+            if (!window.jspdf) {
+                alert('jsPDF failed to load. Check your internet or try a different browser.');
+                return;
+            }
             if (output.innerHTML.trim() === '' || output.innerHTML === '<p>Error parsing. Check syntax.</p>') {
-                alert('No content to save. Please add some screenplay text first.');
+                alert('No content to save. Add screenplay text first.');
                 return;
             }
 
@@ -161,7 +165,20 @@
                 y += lineHeight / 2;
             });
 
-            doc.save('screenplay.pdf');
+            try {
+                doc.save('screenplay.pdf');
+            } catch (error) {
+                console.error('PDF save failed:', error);
+                alert('Save failed. Check console for details or try another browser.');
+                // Fallback: Generate Blob for manual download
+                const blob = doc.output('blob');
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'screenplay.pdf';
+                a.click();
+                URL.revokeObjectURL(url);
+            }
         }
 
         // Debug: Log if parser and jsPDF are ready
