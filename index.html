@@ -69,15 +69,17 @@
         body.fullscreen-mode #format-buttons { position: absolute; top: 50%; right: 10px; transform: translateY(-50%); flex-direction: column; width: auto; padding: 0; border: none; background: transparent; } /* Vertical on right side */
         body.fullscreen-mode #format-buttons button { margin: 3px 0; }
         body.fullscreen-mode #exit-fullscreen { display: block; position: absolute; top: 10px; right: 10px; } /* Next to dark mode */
-        body.fullscreen-mode textarea { height: 95%; }
+        body.fullscreen-mode textarea { height: calc(95% - 40px); margin-top: 40px; } /* Adjust height and add margin for top bar */
         body.fullscreen-mode #title-form { display: none; }
-        body.fullscreen-mode #title-display { display: block; position: absolute; top: 10px; left: 10px; text-align: left; } /* Title and writer at top left */
-        body.fullscreen-mode #title-display .controls { display: none; } /* Hide zoom and fullscreen in fullscreen */
-        body.fullscreen-mode #title-edit { display: none; } /* Hide Edit Title in fullscreen */
+        body.fullscreen-mode #title-display { display: block; position: absolute; top: 0; left: 0; width: 100%; height: 40px; background: var(--bg-color); border-bottom: 1px solid var(--border-color); text-align: left; padding: 10px; box-sizing: border-box; } /* Top bar for title/writer and buttons */
+        body.fullscreen-mode #title-display .controls { position: absolute; top: 10px; right: 10px; } /* Controls at top right in fullscreen */
+        body.fullscreen-mode #title-display .title-info { display: inline-block; }
         body.fullscreen-mode .buttons-row { display: none; }
         body.fullscreen-mode #auto-save-toggle { display: none; }
-        body.fullscreen-mode #dark-mode-toggle-fs { display: block; position: absolute; top: 10px; right: 60px; font-size: 16px; background: none; border: none; cursor: pointer; } /* Dark mode next to exit in fullscreen */
-        #dark-mode-toggle-fs { display: none; }
+        body.fullscreen-mode #dark-mode-toggle { position: absolute; top: 10px; right: 60px; } /* Dark mode in right corner next to zoom and exit fullscreen */
+        body.fullscreen-mode #fullscreen-toggle { display: none; } /* Hide fullscreen toggle in fullscreen */
+        body.fullscreen-mode #zoom-in { display: block; position: absolute; top: 10px; right: 40px; padding: 5px 10px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); cursor: pointer; } /* Zoom button before exit fullscreen */
+        #zoom-in { display: none; }
         #title-display { margin-top: 10px; font-size: 12pt; }
         #title-edit { margin-left: 5px; padding: 5px 10px; vertical-align: top; } /* Edit button close to display text, within editor frame */
         .title-line { display: flex; align-items: center; margin-bottom: 10px; } /* Line for inputs and buttons */
