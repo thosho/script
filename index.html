@@ -26,6 +26,7 @@
         <textarea id="input" placeholder="Type Fountain markup here... e.g., INT. HOUSE - DAY&#10;&#10;JOHN&#10;Hello!"></textarea>
         <button onclick="saveFile()">Save as .fountain</button>
         <button onclick="saveAsPDF()">Save as PDF</button>
+        <button onclick="printPDF()">Print PDF</button>
     </div>
     <div id="preview">
         <h2>Live Screenplay Preview</h2>
@@ -102,14 +103,14 @@
             URL.revokeObjectURL(url);
         }
 
-        function saveAsPDF() {
+        function generatePDF(forPrint = false) {
             if (!window.jspdf) {
                 alert('jsPDF failed to load. Check your internet or try a different browser.');
-                return;
+                return null;
             }
             if (output.innerHTML.trim() === '' || output.innerHTML === '<p>Error parsing. Check syntax.</p>') {
-                alert('No content to save. Add screenplay text first.');
-                return;
+                alert('No content to process. Add screenplay text first.');
+                return null;
             }
 
             const { jsPDF } = window.jspdf;
@@ -165,20 +166,33 @@
                 y += lineHeight / 2;
             });
 
-            try {
-                doc.save('screenplay.pdf');
-            } catch (error) {
-                console.error('PDF save failed:', error);
-                alert('Save failed. Check console for details or try another browser.');
-                // Fallback: Generate Blob for manual download
-                const blob = doc.output('blob');
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'screenplay.pdf';
-                a.click();
-                URL.revokeObjectURL(url);
+            if (forPrint) {
+                doc.autoPrint({ variant: 'non-conform' }); // Trigger print dialog
+                window.open(doc.output('bloburl'), '_blank'); // Open in new tab for printing
+            } else {
+                try {
+                    doc.save('screenplay.pdf');
+                } catch (error) {
+                    console.error('PDF save failed:', error);
+                    alert('Save failed. Check console or try another browser.');
+                    // Fallback: Generate Blob for manual download
+                    const blob = doc.output('blob');
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'screenplay.pdf';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                }
             }
+        }
+
+        function saveAsPDF() {
+            generatePDF(false);
+        }
+
+        function printPDF() {
+            generatePDF(true);
         }
 
         // Debug: Log if parser and jsPDF are ready
