@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Essential for mobile scaling -->
     <title>FILM FOLKS SCREENPLAY WRITER</title>
     <style>
         :root {
@@ -84,6 +84,16 @@
         #zoom-in { display: none; }
         #title-display { margin-top: 10px; font-size: 12pt; }
         #title-edit { margin-left: 5px; padding: 5px 10px; vertical-align: top; } /* Edit button close to display text, within editor frame */
+        /* Responsive adjustments for mobile */
+        @media screen and (max-width: 768px) {
+            body { flex-direction: column; }
+            #editor, #preview { flex: none; width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); }
+            #format-buttons { flex-direction: row; width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border-color); justify-content: space-around; }
+            #format-buttons button { margin: 5px; }
+            textarea { height: 60vh; font-size: 10pt; } /* Adjust for smaller screens */
+            button { font-size: 9pt; padding: 4px 8px; }
+            input { width: 100%; }
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
@@ -99,7 +109,10 @@
             <p id="display-writer"></p>
             <button id="title-edit" onclick="editTitle()">Edit Title</button>
         </div>
-        <textarea id="input" placeholder="Type Sreenplay here... e.g., INT. HOUSE - DAY&#10;&#10;SANTHOSH&#10;Hello!"></textarea>
+        <textarea id="input" placeholder="Type Sreenplay here... e.g., INT. HOUSE - DAY
+
+SANTHOSH
+Hello!"></textarea>
         <div class="buttons-row">
             <button onclick="saveFile()">Save as .fountain</button>
             <button onclick="saveAsPDF()">Save as PDF</button>
@@ -137,24 +150,20 @@
                 transition: /^((?:fade |cut |smash cut |dissolve )?(?:in|out|to)| iris out).?$/i,
                 note: /^Notes:-/i
             };
-
             function parse(text) {
                 const lines = text.split(/\n/);
                 let html = '';
                 let state = 'action';
                 let potentialTransition = '';
                 let lastCharacter = '';
-
                 lines.forEach(line => {
                     line = line.trim();
                     if (!line) return;
-
                     // Handle notes: Render in italics for preview
                     if (rules.note.test(line)) {
                         html += `<p class="note">${line}</p>`;
                         return; // Notes are not part of screenplay flow
                     }
-
                     // Handle duplicate characters
                     if (rules.character.test(line)) {
                         if (line === lastCharacter) {
@@ -166,7 +175,6 @@
                         return;
                     }
                     lastCharacter = ''; // Reset after non-character line
-
                     // Detect and combine potential multi-line transitions
                     if (/^[A-Z\s:.]+$/.test(line) && state === 'action') {
                         potentialTransition += (potentialTransition ? ' ' : '') + line;
@@ -182,7 +190,6 @@
                             potentialTransition = '';
                         }
                     }
-
                     if (rules.scene_heading.test(line)) {
                         html += `<p class="scene-heading">${line}</p>`;
                         state = 'action';
@@ -198,17 +205,13 @@
                         state = 'action';
                     }
                 });
-
                 if (potentialTransition) {
                     html += `<p class="action">${potentialTransition}</p>`;
                 }
-
                 return { html: { script: html } };
             }
-
             return { parse: parse };
         })();
-
         const input = document.getElementById('input');
         const output = document.getElementById('output');
         const toggleButton = document.getElementById('dark-mode-toggle');
@@ -225,7 +228,6 @@
         let isAutoSaveOn = false;
         let isFullscreen = false;
         let currentFontSize = 12; // Initial font size in pt
-
         function updatePreview() {
             if (input.value.trim() === '') {
                 output.innerHTML = '<p>After you type on the left, the preview will appear here.</p>';
@@ -238,17 +240,14 @@
                 output.innerHTML = '<p>Error parsing. Check syntax.</p>';
             }
         }
-
         input.addEventListener('input', updatePreview);
         updatePreview(); // Initial render
-
         // Function to apply formatting to the current/selected line
         function applyFormat(type) {
             const start = input.selectionStart;
             const end = input.selectionEnd;
             const text = input.value;
-            const lines = text.split('\n');
-
+            const lines = text.split('\\n');
             // Find the line index of the cursor/selection
             let charCount = 0;
             let lineIndex = -1;
@@ -260,14 +259,12 @@
                 }
             }
             if (lineIndex === -1) return; // No line found
-
             let line = lines[lineIndex].trim();
-
             // Apply format based on type
             switch (type) {
                 case 'S': // Scene Heading: Uppercase and ensure format
                     line = line.toUpperCase();
-                    if (!/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/i.test(line)) {
+                    if (!/^(INT\\.|EXT\\.|EST\\.|INT\\/EXT\\.|I\\/E\\.)/i.test(line)) {
                         line = 'INT. ' + line; // Default to INT. if not specified
                     }
                     break;
@@ -281,7 +278,7 @@
                 case 'D': // Dialogue: No specific change, but ensure it's after character (parser handles)
                     break;
                 case 'P': // Parenthetical: Wrap in parentheses if not already
-                    if (!/^\(.+\)$/.test(line)) {
+                    if (!/^\\(.+\\)$/.test(line)) {
                         line = '(' + line + ')';
                     }
                     break;
@@ -297,20 +294,16 @@
                     }
                     break;
             }
-
             // Replace the line, preserving leading/trailing spaces
             const originalLine = lines[lineIndex];
-            const leadingSpaces = originalLine.match(/^\s*/)[0];
-            const trailingSpaces = originalLine.match(/\s*$/)[0];
+            const leadingSpaces = originalLine.match(/^\\s\*/)[0];
+            const trailingSpaces = originalLine.match(/\\s\*$/)[0];
             lines[lineIndex] = leadingSpaces + line + trailingSpaces;
-
             // Update textarea value and restore cursor
-            input.value = lines.join('\n');
+            input.value = lines.join('\\n');
             input.selectionStart = input.selectionEnd = start; // Reset cursor
-
             updatePreview(); // Refresh preview
         }
-
         function saveFile(auto = false) {
             const blob = new Blob([input.value], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
@@ -318,7 +311,7 @@
             a.href = url;
             if (auto) {
                 const now = new Date();
-                const timestamp = now.toISOString().replace(/T/, '_').replace(/:/g, '-').split('.')[0];
+                const timestamp = now.toISOString().replace(/T/, '\_').replace(/:/g, '-').split('.')[0];
                 a.download = `screenplay_${timestamp}.fountain`;
             } else {
                 a.download = 'screenplay.fountain';
@@ -326,7 +319,6 @@
             a.click();
             URL.revokeObjectURL(url);
         }
-
         function toggleAutoSave() {
             isAutoSaveOn = !isAutoSaveOn;
             autoSaveButton.textContent = `Auto Save: ${isAutoSaveOn ? 'On' : 'Off'}`;
@@ -336,7 +328,6 @@
                 clearInterval(autoSaveInterval);
             }
         }
-
         function toggleFullscreen() {
             isFullscreen = !isFullscreen;
             document.body.classList.toggle('fullscreen-mode', isFullscreen);
@@ -344,7 +335,6 @@
                 fullscreenToggle.style.display = 'inline-block'; // Show fullscreen toggle in normal mode
             }
         }
-
         function setTitle() {
             const title = titleInput.value.trim();
             const writer = writerInput.value.trim();
@@ -355,34 +345,29 @@
                 titleDisplay.style.display = 'block';
             }
         }
-
         function editTitle() {
             titleForm.style.display = 'block';
             titleDisplay.style.display = 'none';
         }
-
         // Zoom function (increases font size by 2pt each time, up to a max)
         function zoomIn() {
             currentFontSize += 2;
             if (currentFontSize > 24) currentFontSize = 24; // Max size
             document.documentElement.style.setProperty('--font-size', `${currentFontSize}pt`);
         }
-
         function generatePDF(forPrint = false) {
             if (!window.jspdf) {
                 alert('jsPDF failed to load. Check your internet or try a different browser.');
                 return;
             }
-            if (output.innerHTML.trim() === '' || output.innerHTML === '<p>After you type on the left, the preview will appear here.</p>') {
+            if (output.innerHTML.trim() = '' || output.innerHTML = '<p>After you type on the left, the preview will appear here.</p>') {
                 alert('No content to process. Add screenplay text first.');
                 return;
             }
-
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({ unit: 'pt', format: 'a4', orientation: 'portrait' });
             doc.setFont('courier', 'normal');
             doc.setFontSize(12);
-
             // Add title page
             const title = (displayTitle.textContent.replace('Title: ', '') || titleInput.value.trim() || 'UNTITLED SCREENPLAY').toUpperCase();
             const writer = displayWriter.textContent.replace('Writer: ', '') || writerInput.value.trim() || 'Unknown Writer';
@@ -394,7 +379,6 @@
             doc.text('Written by', 297.5, 500, { align: 'center' });
             doc.text(writer, 297.5, 520, { align: 'center' });
             doc.addPage(); // Start screenplay on next page
-
             // Add screenplay content (skip notes)
             const elements = output.querySelectorAll('p:not(.note)');
             let y = 72; // Starting Y (1 inch margin)
@@ -403,15 +387,12 @@
             const leftMargin = 108; // 1.5 inch for action
             const rightMargin = pageWidth - 72; // 1 inch right
             const lineHeight = 12; // Standard screenplay line height
-
             elements.forEach(el => {
-                let text = el.textContent.trim().replace(/\s+/g, ' '); // Clean extra spaces
+                let text = el.textContent.trim().replace(/\\s+/g, ' '); // Clean extra spaces
                 let x = leftMargin;
                 const className = el.className;
-
                 // Reset font before each element
                 doc.setFont('courier', 'normal');
-
                 // Apply styles and positioning
                 if (className === 'scene-heading') {
                     doc.setFont('courier', 'bold');
@@ -432,7 +413,6 @@
                 } else {
                     x = leftMargin;
                 }
-
                 // Split long lines, but avoid over-splitting short ones
                 const maxWidth = rightMargin - x - 36;
                 const lines = text.length < 20 ? [text] : doc.splitTextToSize(text, maxWidth);
@@ -444,15 +424,13 @@
                     doc.text(line, x, y);
                     y += lineHeight;
                 });
-
                 // Reset font after element and add spacing
                 doc.setFont('courier', 'normal');
                 y += lineHeight / 2; // Inter-element spacing
             });
-
             if (forPrint) {
                 doc.autoPrint({ variant: 'non-conform' });
-                window.open(doc.output('bloburl'), '_blank');
+                window.open(doc.output('bloburl'), '\_blank');
             } else {
                 try {
                     const filename = `${title}.pdf`;
@@ -470,15 +448,12 @@
                 }
             }
         }
-
         function saveAsPDF() {
             generatePDF(false);
         }
-
         function printPDF() {
             generatePDF(true);
         }
-
         // Dark Mode Toggle
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
@@ -486,14 +461,12 @@
             toggleButton.textContent = isDark ? '☀️' : '🌙';
             localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
         }
-
         // Load saved dark mode preference
         if (localStorage.getItem('darkMode') === 'enabled') {
             toggleDarkMode();
         } else {
             toggleButton.textContent = '🌙';
         }
-
         // Debug: Log if parser and jsPDF are ready
         document.addEventListener('DOMContentLoaded', () => {
             if (window.jspdf) {
