@@ -84,6 +84,9 @@
         .title-line { display: flex; align-items: center; margin-bottom: 10px; } /* Line for inputs and buttons */
         .controls { display: inline-flex; align-items: center; } /* Controls group */
         .controls button { margin-left: 5px; padding: 5px; font-size: 16px; background: none; border: none; cursor: pointer; }
+        #display-title, #display-writer { margin: 0; display: inline-block; }
+        #title-display .title-line { justify-content: space-between; } /* Align title/writer and controls */
+        #title-display .edit-controls { display: flex; align-items: center; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
@@ -108,16 +111,20 @@
             </div>
         </div>
         <div id="title-display" style="display: none;">
-            <p id="display-title"></p>
-            <p id="display-writer"></p>
             <div class="title-line">
-                <button id="title-edit" onclick="editTitle()">Edit Title</button>
-                <div class="controls">
-                    <button id="dark-mode-toggle2" onclick="toggleDarkMode()">☀️</button>
-                    <button onclick="zoomIn()">+</button>
-                    <button onclick="zoomOut()">-</button>
-                    <button onclick="resetZoom()">R</button>
-                    <button id="fullscreen-toggle2" onclick="toggleFullscreen()">⛶</button>
+                <div>
+                    <p id="display-title"></p>
+                    <p id="display-writer"></p>
+                </div>
+                <div class="edit-controls">
+                    <button id="title-edit" onclick="editTitle()">Edit Title</button>
+                    <div class="controls">
+                        <button id="dark-mode-toggle2" onclick="toggleDarkMode()">☀️</button>
+                        <button onclick="zoomIn()">+</button>
+                        <button onclick="zoomOut()">-</button>
+                        <button onclick="resetZoom()">R</button>
+                        <button id="fullscreen-toggle2" onclick="toggleFullscreen()">⛶</button>
+                    </div>
                 </div>
             </div>
         </div>
