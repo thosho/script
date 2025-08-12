@@ -50,8 +50,8 @@
         }
         #preview { flex: 1; padding: 20px; overflow-y: auto; background: var(--preview-bg); }
         textarea { width: 100%; height: 80%; font-size: var(--font-size); border: 1px solid var(--border-color); resize: none; background: var(--bg-color); color: var(--text-color); } /* Increased vertical size, with zoom variable */
-        input { width: 70%; margin-bottom: 10px; padding: 5px; font-size: 12pt; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); display: inline-block; } /* Shortened fields */
-        #title-form button { margin-left: 5px; padding: 5px 10px; vertical-align: top; position: relative; top: -10px; /* negative moves up */ } /* Set button close to fields, within editor frame */
+        input { width: calc(100% - 200px); margin-bottom: 10px; padding: 5px; font-size: 12pt; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); display: inline-block; } /* Adjusted width to leave space on right */
+        #title-form button, #title-display button { margin-left: 5px; padding: 5px 10px; vertical-align: top; } /* Buttons next to fields */
         button { margin-top: 10px; padding: 3px 6px; margin-right: 5px; font-size: 10pt; } /* Reduced button size */
         .buttons-row { display: flex; align-items: center; flex-wrap: nowrap; } /* Keep buttons in one line */
         .scene-heading { font-weight: bold; text-transform: uppercase; margin: 1em 0; }
@@ -62,7 +62,7 @@
         .transition { text-transform: uppercase; text-align: right; margin: 1em 0; }
         .note { font-style: italic; color: #666; margin: 1em 0; } /* Style for notes in preview */
         #output { max-width: 37em; margin: 0 auto; font-size: 12pt; line-height: 1.2; }
-        #dark-mode-toggle, #fullscreen-toggle { cursor: pointer; font-size: 16px; background: none; border: none; }
+        #dark-mode-toggle, #fullscreen-toggle { cursor: pointer; font-size: 16px; background: none; border: none; margin-left: 5px; }
         #exit-fullscreen { display: none; position: absolute; top: 10px; right: 10px; padding: 5px 10px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); cursor: pointer; }
         body.fullscreen-mode #editor { flex: auto; width: 70%; margin: 0 auto; padding: 10px; } /* Reduced horizontal size, centered */
         body.fullscreen-mode #preview { display: none; }
@@ -80,29 +80,45 @@
         #zoom-in { display: none; }
         #title-display { margin-top: 10px; font-size: 12pt; }
         #title-edit { margin-left: 5px; padding: 5px 10px; vertical-align: top; } /* Edit button close to display text, within editor frame */
-        .title-controls { display: flex; align-items: center; margin-bottom: 10px; } /* Container for controls next to Save Title */
-        .title-controls button { margin-left: 5px; padding: 5px; font-size: 16px; background: none; border: none; cursor: pointer; }
+        .title-line { display: flex; align-items: center; margin-bottom: 10px; } /* Line for inputs and buttons */
+        .controls { display: inline-flex; align-items: center; } /* Controls group */
+        .controls button { margin-left: 5px; padding: 5px; font-size: 16px; background: none; border: none; cursor: pointer; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <div id="editor">
         <div id="title-form">
-            <input id="title" placeholder="Screenplay Title">
-            <input id="writer" placeholder="Writer Name">
-            <div class="title-controls">
+            <div class="title-line">
+                <input id="title" placeholder="Screenplay Title">
+            </div>
+            <div class="title-line">
+                <input id="writer" placeholder="Writer Name">
+            </div>
+            <div class="title-line">
                 <button onclick="setTitle()">Save Title</button>
-                <button id="dark-mode-toggle" onclick="toggleDarkMode()">☀️</button>
-                <button onclick="zoomIn()">+</button>
-                <button onclick="zoomOut()">-</button>
-                <button onclick="resetZoom()">R</button>
-                <button id="fullscreen-toggle" onclick="toggleFullscreen()">⛶</button>
+                <div class="controls">
+                    <button id="dark-mode-toggle" onclick="toggleDarkMode()">☀️</button>
+                    <button onclick="zoomIn()">+</button>
+                    <button onclick="zoomOut()">-</button>
+                    <button onclick="resetZoom()">R</button>
+                    <button id="fullscreen-toggle" onclick="toggleFullscreen()">⛶</button>
+                </div>
             </div>
         </div>
         <div id="title-display" style="display: none;">
             <p id="display-title"></p>
             <p id="display-writer"></p>
-            <button id="title-edit" onclick="editTitle()">Edit Title</button>
+            <div class="title-line">
+                <button id="title-edit" onclick="editTitle()">Edit Title</button>
+                <div class="controls">
+                    <button id="dark-mode-toggle2" onclick="toggleDarkMode()">☀️</button>
+                    <button onclick="zoomIn()">+</button>
+                    <button onclick="zoomOut()">-</button>
+                    <button onclick="resetZoom()">R</button>
+                    <button id="fullscreen-toggle2" onclick="toggleFullscreen()">⛶</button>
+                </div>
+            </div>
         </div>
         <textarea id="input" placeholder="Type Screenplay here... e.g., INT. HOUSE - DAY
 
@@ -207,8 +223,10 @@ Hello!"></textarea>
         const input = document.getElementById('input');
         const output = document.getElementById('output');
         const toggleButton = document.getElementById('dark-mode-toggle');
+        const toggleButton2 = document.getElementById('dark-mode-toggle2'); // For title-display
         const autoSaveButton = document.getElementById('auto-save-toggle');
         const fullscreenToggle = document.getElementById('fullscreen-toggle');
+        const fullscreenToggle2 = document.getElementById('fullscreen-toggle2'); // For title-display
         const exitFullscreen = document.getElementById('exit-fullscreen');
         const titleInput = document.getElementById('title');
         const writerInput = document.getElementById('writer');
@@ -325,6 +343,7 @@ Hello!"></textarea>
             document.body.classList.toggle('fullscreen-mode', isFullscreen);
             if (!isFullscreen) {
                 fullscreenToggle.style.display = 'inline-block'; // Show fullscreen toggle in normal mode
+                fullscreenToggle2.style.display = 'inline-block';
             }
         }
         function setTitle() {
@@ -465,11 +484,12 @@ Hello!"></textarea>
         function printPDF() {
             generatePDF(true);
         }
-        // Dark Mode Toggle
+        // Dark Mode Toggle (handles both buttons)
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
             const isDark = document.body.classList.contains('dark-mode');
             toggleButton.textContent = isDark ? '☀️' : '🌙';
+            toggleButton2.textContent = isDark ? '☀️' : '🌙';
             localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
         }
         // Load saved dark mode preference
@@ -477,6 +497,7 @@ Hello!"></textarea>
             toggleDarkMode();
         } else {
             toggleButton.textContent = '🌙';
+            toggleButton2.textContent = '🌙';
         }
         // Debug: Log if parser and jsPDF are ready
         document.addEventListener('DOMContentLoaded', () => {
