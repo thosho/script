@@ -46,6 +46,42 @@
             a.click();
             URL.revokeObjectURL(url);
         }
+        <script>
+    const input = document.getElementById('input');
+    const output = document.getElementById('output');
+
+    // Check if fountain is loaded
+    if (typeof fountain === 'undefined') {
+        console.error('Fountain.js failed to load. Check CDN or network.');
+    } else {
+        console.log('Fountain.js loaded successfully.');
+    }
+
+    input.addEventListener('input', () => {
+        if (typeof fountain !== 'undefined') {
+            fountain.parse(input.value, (result) => {
+                if (result && result.html && result.html.script) {
+                    output.innerHTML = result.html.script;
+                    console.log('Parsing successful:', result);
+                } else {
+                    console.error('Parsing failed: Invalid result.', result);
+                }
+            });
+        } else {
+            output.innerHTML = '<p>Error: Fountain.js not loaded.</p>';
+        }
+    });
+
+    function saveFile() {
+        const blob = new Blob([input.value], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'screenplay.fountain';
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+</script>
     </script>
 </body>
 </html>
