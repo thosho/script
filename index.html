@@ -14,39 +14,101 @@
                 <button id="newBtn">New</button>
                 <button id="saveBtn">Save</button>
                 <button id="loadBtn">Load</button>
+                <button id="exportBtn">Export PDF</button>
+                
+                <div class="format-controls">
+                    <button id="sceneBtn" title="Insert Scene Heading">Scene</button>
+                    <button id="characterBtn" title="Insert Character">Character</button>
+                    <button id="actionBtn" title="Insert Action">Action</button>
+                    <button id="dialogueBtn" title="Insert Dialogue">Dialogue</button>
+                </div>
+                
                 <span id="autoSaveStatus">Auto-saved</span>
             </div>
         </header>
         
         <main>
             <div class="editor-container">
-                <textarea 
-                    id="scriptEditor" 
-                    placeholder="Start writing your screenplay here...
-                    
-Example:
+                <div class="editor-tabs">
+                    <button id="editorTab" class="tab active">Editor (Ctrl+1)</button>
+                    <button id="previewTab" class="tab">Preview (Ctrl+2)</button>
+                </div>
+                
+                <div class="editor-content">
+                    <textarea 
+                        id="scriptEditor" 
+                        placeholder="Start writing your screenplay here...
+
+Example Fountain formatting:
+
 FADE IN:
 
 EXT. COFFEE SHOP - DAY
 
-JOHN enters the coffee shop.
+JOHN enters the coffee shop. The bell above the door CHIMES.
 
                     JOHN
           I'll have a large coffee, please.
 
-The barista nods and starts preparing the order."
-                ></textarea>
+The BARISTA nods and starts preparing the order.
+
+                    BARISTA
+          Coming right up!
+
+JOHN looks around the crowded shop.
+
+FADE OUT."
+                    ></textarea>
+                    
+                    <div id="previewPane" style="display: none;">
+                        <p style="color: #666; font-style: italic;">Start writing to see preview...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar">
+                <div class="stats-section">
+                    <h3>Statistics</h3>
+                    <div class="stat-item">
+                        <span>Characters:</span>
+                        <span id="characterCount">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Scenes:</span>
+                        <span id="sceneCount">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Dialogue Lines:</span>
+                        <span id="dialogueCount">0</span>
+                    </div>
+                </div>
+                
+                <div class="characters-section">
+                    <h3>Characters</h3>
+                    <div id="charactersList">
+                        <p style="color: #666; font-size: 0.875rem;">No characters yet</p>
+                    </div>
+                </div>
+                
+                <div class="scenes-section">
+                    <h3>Scenes</h3>
+                    <div id="scenesList">
+                        <p style="color: #666; font-size: 0.875rem;">No scenes yet</p>
+                    </div>
+                </div>
             </div>
         </main>
         
         <footer>
             <div class="status-bar">
-                <span id="wordCount">Words: 0</span>
+                <span id="wordCount">Words: 0 | Pages: ~0</span>
                 <span id="lastSaved">Never saved</span>
+                <span>Tip: Use Ctrl+1/2 to switch between Editor and Preview</span>
             </div>
         </footer>
     </div>
     
+    <script src="https://unpkg.com/fountain-js@1.9.1/dist/fountain.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
