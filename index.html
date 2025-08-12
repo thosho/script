@@ -1,1 +1,32 @@
-<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8" /> <meta name="viewport" content="width=device-width, initial-scale=1.0"/> <title>Simple Screenplay Editor</title> <style> body { font-family: 'Courier New', monospace; margin:0; background:#f5f5f5; } header { background:#fff; padding:10px; border-bottom:1px solid #ccc; } main { display:flex; gap:10px; padding:10px; height:calc(100vh - 50px); } textarea, pre { flex:1; padding:10px; border-radius:5px; } textarea { border:1px solid #aaa; font-size:14px; line-height:1.5; } pre { background:#fff; border:1px solid #ddd; white-space:pre-wrap; overflow:auto; } h1 { margin:0; font-size:20px; } </style> </head> <body> <header><h1>Screenplay Editor</h1></header> <main> <textarea id="editor" placeholder="Type your script here..."></textarea> <pre id="preview"><em>Live preview...</em></pre> </main> <script> const editor = document.getElementById('editor'); const preview = document.getElementById('preview'); editor.addEventListener('input', () => { const text = editor.value || '<em>Live preview...</em>'; preview.innerHTML = text; }); </script> </body> </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Screenplay Editor</title>
+  <style>
+    body { font-family: 'Courier New', monospace; margin:0; background:#f5f5f5; }
+    header { background:#fff; padding:10px; border-bottom:1px solid #ccc; }
+    main { display:flex; gap:10px; padding:10px; height:calc(100vh - 50px); }
+    textarea, pre { flex:1; padding:10px; border-radius:5px; }
+    textarea { border:1px solid #aaa; font-size:14px; line-height:1.5; }
+    pre { background:#fff; border:1px solid #ddd; white-space:pre-wrap; overflow:auto; }
+    h1 { margin:0; font-size:20px; }
+  </style>
+</head>
+<body>
+  <header><h1>Screenplay Editor</h1></header>
+  <main>
+    <textarea id="editor" placeholder="Type your script here..."></textarea>
+    <pre id="preview"><em>Live preview...</em></pre>
+  </main>
+  <script>
+    const editor = document.getElementById('editor');
+    const preview = document.getElementById('preview');
+    editor.addEventListener('input', () => {
+      const text = editor.value || '<em>Live preview...</em>';
+      preview.innerHTML = text;
+    });
+  </script>
+</body>
+</html>
