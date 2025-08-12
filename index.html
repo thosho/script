@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Working Fountain Screenplay Editor</title>
+    <title>FILM FOLKS Fountain Screenplay Editor</title>
     <style>
         :root {
             --bg-color: #fff;
@@ -55,7 +55,7 @@
   padding: 5px 10px;
   vertical-align: top;
   position: relative;
-  top: -3px; /* negative moves up */ } /* Set button close to fields, within editor frame */
+  top: -10px; /* negative moves up */ } /* Set button close to fields, within editor frame */
         button { margin-top: 10px; padding: 3px 6px; margin-right: 5px; font-size: 10pt; } /* Reduced button size */
         .buttons-row { display: flex; align-items: center; flex-wrap: nowrap; } /* Keep buttons in one line */
         .scene-heading { font-weight: bold; text-transform: uppercase; margin: 1em 0; }
@@ -99,7 +99,7 @@
             <p id="display-writer"></p>
             <button id="title-edit" onclick="editTitle()">Edit Title</button>
         </div>
-        <textarea id="input" placeholder="Type Fountain markup here... e.g., INT. HOUSE - DAY&#10;&#10;JOHN&#10;Hello!"></textarea>
+        <textarea id="input" placeholder="Type Sreenplay here... e.g., INT. HOUSE - DAY&#10;&#10;THOSHO&#10;Hello!"></textarea>
         <div class="buttons-row">
             <button onclick="saveFile()">Save as .fountain</button>
             <button onclick="saveAsPDF()">Save as PDF</button>
