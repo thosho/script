@@ -1,37 +1,71 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<title>FreeWriter — Cinematic Fountain Preview</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap');
-body { margin:0; font-family:'Courier Prime', monospace; background:#111; color:#eee; }
-.container { display:grid; grid-template-columns:1fr 1fr; height:100vh; }
-textarea { width:100%; height:100%; background:#1a1a1a; color:#fff; padding:1rem; border:none; resize:none; font-family:'Courier Prime', monospace; font-size:14px; line-height:1.5; }
-.preview { padding:2rem; overflow:auto; background:#000; }
-.script { max-width:800px; margin:0 auto; font-family:'Courier Prime', monospace; font-size:14px; line-height:1.5; white-space:normal; }
-.script h3 { font-weight:bold; text-transform:uppercase; margin-top:1em; }
-.script h4 { margin-left:35%; text-transform:uppercase; font-weight:bold; margin-top:1em; }
-.script p { margin:0.5em 0; }
-.script .parenthetical { margin-left:30%; font-style:italic; }
-.script .dialogue { margin-left:25%; margin-right:25%; }
-.script .centered { text-align:center; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fountain Screenplay Editor</title>
+    <style>
+        body { font-family: monospace; display: flex; height: 100vh; margin: 0; }
+        #editor { flex: 1; padding: 10px; }
+        #preview { flex: 1; padding: 10px; background: #f0f0f0; overflow-y: auto; }
+        textarea { width: 100%; height: 80%; font-size: 14px; }
+        button { margin-top: 10px; }
+        .scene_heading { text-transform: uppercase; font-weight: bold; }
+        .character { text-transform: uppercase; margin-top: 10px; }
+        .dialogue { margin-left: 20px; }
+    </style>
+    <script src="assets/js/fountain.js"></script> <!-- Host this file locally -->
 </head>
 <body>
-<div class="container">
-<textarea id="editor" placeholder="Type Fountain screenplay here..."></textarea>
-<div class="preview" id="preview"><div class="script">Preview will appear here...</div></div>
-</div>
-<script>
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0}),exports.Fountain=void 0;const lexer_1=require("./lexer"),utilities_1=require("./utilities");class Fountain{parse(e,t){if(null==e)throw new Error("Script is undefined or null.");if("string"!=typeof e)throw new Error(`Script should be \`string\`, input was \`${Object.prototype.toString.call(e)}\`.`);try{let r="";const[s,a]=lexer_1.Lexer.tokenize(e);this.tokens=s.concat(a);const n=s.find((e=>"title"===e.type));return(null==n?void 0:n.text)&&(r=(0,utilities_1.unEscapeHTML)(lexer_1.InlineLexer.reconstruct(n.text).replace("<br />"," ").replace(/<(?:.|\n)*?>/g,""))),{title:r,html:{title_page:s.map((e=>this.to_html(e))).join(""),script:a.map((e=>this.to_html(e))).join("")},tokens:t?this.tokens:[]}}catch(e){throw e.message+="\nPlease submit an issue to https://github.com/jonnygreenwald/fountain-js/issues",e}}to_html(e){let t="";switch((null==e?void 0:e.text)&&(t=lexer_1.InlineLexer.reconstruct(e.text,"action"===e.type)),e.type){case"title":return`<h1>${t}</h1>`;case"author":case"authors":return`<p class="authors">${t}</p>`;case"contact":case"copyright":case"credit":case"date":case"draft_date":case"notes":case"revision":case"source":return`<p class="${e.type.replace(/_/g,"-")}">${t}</p>`;case"scene_heading":return`<h3${(e.scene_number?` id="${e.scene_number}">`:">")+t}</h3>`;case"transition":return`<h2>${t}</h2>`;case"dual_dialogue_begin":return'<div class="dual-dialogue">';case"dialogue_begin":return`<div class="dialogue${e.dual?" "+e.dual:""}">`;case"character":return`<h4>${t}</h4>`;case"parenthetical":return`<p class="parenthetical">${t}</p>`;case"dialogue":case"action":return`<p>${t}</p>`;case"dialogue_end":case"dual_dialogue_end":return"</div>";case"section":case"synopsis":case"spaces":return;case"note":return`\x3c!-- ${t} --\x3e`;case"boneyard_begin":return"\x3c!-- ";case"boneyard_end":return" --\x3e";case"centered":return`<p class="centered">${t}</p>`;case"lyrics":return`<p class="lyrics">${t}</p>`;case"page_break":return"<hr />"}}}exports.Fountain=Fountain;
-function updatePreview() {
-  var text = document.getElementById('editor').value;
-  var parser = new exports.Fountain();
-  var out = parser.parse(text);
-  document.getElementById('preview').innerHTML = '<div class="script">' + out.html.script + '</div>';
-}
-document.getElementById('editor').addEventListener('input', updatePreview);
-</script>
+    <div id="editor">
+        <h2>Write Your Screenplay (Fountain Syntax)</h2>
+        <textarea id="input" placeholder="Type here... e.g., INT. HOUSE - DAY&#10;CHARACTER&#10;Hello!"></textarea>
+        <button onclick="saveFile()">Save as .fountain</button>
+    </div>
+    <div id="preview">
+        <h2>Screenplay Preview</h2>
+        <div id="output"></div>
+    </div>
+    <script>
+        const input = document.getElementById('input');
+        const output = document.getElementById('output');
+
+        // Async load check
+        window.addEventListener('load', () => {
+            if (typeof fountain === 'undefined') {
+                output.innerHTML = '<p>Error: Fountain.js not loaded. Check console for details.</p>';
+                console.error('Fountain.js failed to load. Verify path: assets/js/fountain.js');
+            } else {
+                console.log('Fountain.js loaded successfully.');
+                updatePreview(); // Initial parse
+            }
+        });
+
+        function updatePreview() {
+            if (typeof fountain !== 'undefined') {
+                fountain.parse(input.value, true, (result) => { // Include tokens for debugging
+                    if (result && result.html && result.html.script) {
+                        output.innerHTML = result.html.script;
+                        console.log('Parsing successful:', result.tokens); // Log tokens for debug
+                    } else {
+                        output.innerHTML = '<p>Parsing error. Ensure valid Fountain syntax.</p>';
+                        console.error('Parsing failed:', result);
+                    }
+                });
+            }
+        }
+
+        input.addEventListener('input', updatePreview);
+
+        function saveFile() {
+            const blob = new Blob([input.value], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'screenplay.fountain';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
 </body>
 </html>
