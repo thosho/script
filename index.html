@@ -1,95 +1,33 @@
-<script src="https://unpkg.com/fountain-js@1.9.1/dist/fountain.js"></script>
-<script src="script.js"></script>
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Screenplay Editor</title>
-  <style>
-    body { font-family: 'Courier New', monospace; margin:0; background:#f5f5f5; }
-    header { background:#fff; padding:10px; border-bottom:1px solid #ccc; }
-    main { display:flex; gap:10px; padding:10px; height:calc(100vh - 50px); }
-    textarea, pre { flex:1; padding:10px; border-radius:5px; }
-    textarea { border:1px solid #aaa; font-size:14px; line-height:1.5; }
-    pre { background:#fff; border:1px solid #ddd; white-space:pre-wrap; overflow:auto; }
-    h1 { margin:0; font-size:20px; }
-    .screenplay-preview .scene-heading {
-  text-transform: uppercase;
-  font-weight: bold;
-  margin: 1rem 0 0.5rem;
-}
-.screenplay-preview .character {
-  text-transform: uppercase;
-  margin: 1rem 0 0 3.5rem;
-  font-weight: bold;
-}
-.screenplay-preview .dialogue {
-  margin: 0 0 1rem 2.5rem;
-  max-width: 3.5in;
-}
-.screenplay-preview .action {
-  margin: 0.5rem 0;
-}
-
-  </style>
+  <meta charset="UTF-8">
+  <title>Working Screenplay Test</title>
 </head>
 <body>
-  <header><h1>Screenplay Editor</h1></header>
-  <main>
-    <textarea id="editor" placeholder="Type your script here..."></textarea>
-    <pre id="preview"><em>Live preview...</em></pre>
-  </main>
-  <script>
-    const editor = document.getElementById('editor');
-    const preview = document.getElementById('preview');
-    editor.addEventListener('input', () => {
-      const text = editor.value || '<em>Live preview...</em>';
-      preview.innerHTML = text;
-    });
-  </script>
-    <!-- Load Fountain parser -->
+  <h1>Fountain Live Preview Test</h1>
+  <textarea id="editor" rows="10" cols="50">FADE IN:</textarea>
+  <div id="preview"><em>Start typing...</em></div>
+
+  <!-- Load Fountain -->
   <script src="https://unpkg.com/fountain-js@1.9.1/dist/fountain.js"></script>
-
-  <!-- Your existing preview script -->
+  
+  <!-- Your own script must come AFTER Fountain -->
   <script>
     const editor = document.getElementById('editor');
     const preview = document.getElementById('preview');
 
-    let fountain;
-    if (typeof Fountain !== 'undefined') {
-      fountain = new Fountain();
-    }
-
-    function render() {
-      const text = editor.value;
-      if (!text.trim()) {
-        preview.innerHTML = '<em>Live preview...</em>';
-        return;
+    if (typeof Fountain === 'undefined') {
+      preview.innerHTML = '<span style="color:red">Fountain failed to load</span>';
+    } else {
+      const fountain = new Fountain();
+      function render() {
+        const parsed = fountain.parse(editor.value, true);
+        preview.innerHTML = `<div class="screenplay-preview">${parsed.html.script}</div>`;
       }
-
-      if (fountain) {
-        try {
-          const parsed = fountain.parse(text, true);
-          if (parsed && parsed.html && parsed.html.script) {
-            preview.innerHTML =
-              '<div class="screenplay-preview">' + parsed.html.script + '</div>';
-            return;
-          }
-        } catch (err) {
-          console.warn('Fountain parse error', err);
-        }
-      }
-
-      // fallback — plain text
-      preview.textContent = text;
+      editor.addEventListener('input', render);
+      render();
     }
-
-    editor.addEventListener('input', render);
-    render();
   </script>
-</body>
-</html>
-
 </body>
 </html>
