@@ -82,30 +82,10 @@
         #title-edit { margin-left: 5px; padding: 5px 10px; vertical-align: top; } /* Edit button close to display text, within editor frame */
         .title-line { display: flex; align-items: center; margin-bottom: 10px; } /* Line for inputs and buttons */
         .controls { display: inline-flex; align-items: center; } /* Controls group */
+        .controls button { margin-left: 5px; padding: 5px; font-size: 16px; background: none; border: none; cursor: pointer; }
         #display-title, #display-writer { margin: 0; display: inline-block; }
         #title-display .title-line { justify-content: space-between; } /* Align title/writer and controls */
         #title-display .edit-controls { display: flex; align-items: center; }
-        /* Storyboard styles */
-        .storyboard-container { max-width: 1200px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 10px #bbb; padding: 24px; display: none; } /* Hidden by default */
-        .top-section { display: flex; justify-content: center; align-items: center; margin-bottom: 20px; position: relative; }
-        .top-fields { display: flex; gap: 32px; align-items: center; }
-        .top-fields input { font-size: 17px; padding: 6px 9px; border: 1px solid #bbb; border-radius: 4px; width: 230px; }
-        .top-label { font-weight: bold; margin-right: 8px; }
-        .saved-header { display: none; text-align: center; }
-        .saved-title { font-size: 18px; font-weight: bold; letter-spacing: 1px; margin-bottom: 2px; }
-        .saved-director, .saved-sequence { font-size: 13px; font-weight: normal; margin-right: 16px; }
-        .save-btn { margin-left: 20px; padding: 8px 16px; background: #28a745; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
-        .save-btn:hover { background: #218838; }
-        .edit-btn { display: none; padding: 8px 16px; background: #ffc107; color: #212529; border: none; border-radius: 5px; cursor: pointer; position: absolute; right: 0; }
-        .edit-btn:hover { background: #e0a800; }
-        .storyboard-row { display: flex; flex-direction: row; gap: 24px; margin-bottom: 32px; }
-        .storyboard-panel { width: 220px; background: #f4f4f4; border-radius: 8px; padding: 14px; box-sizing: border-box; flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; }
-        .storyboard-thumbnail { width: 190px; height: 120px; background: #ddd; border-radius: 4px; object-fit: cover; margin-bottom: 12px; margin-top: 4px; }
-        /* ... (rest of storyboard styles from previous code) */
-        /* Print styling for storyboard (from previous code) */
-        @media print {
-            /* ... (include all @media print styles from previous storyboard code) */
-        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
@@ -156,7 +136,6 @@ Hello!"></textarea>
             <button onclick="printPDF()">Print PDF</button>
             <button onclick="previewFullscreen()">Preview Fullscreen</button>
             <button id="auto-save-toggle" onclick="toggleAutoSave()">Auto Save: Off</button>
-            <button onclick="toggleStoryboard()">Storyboard</button>
         </div>
     </div>
     <div id="format-buttons">
@@ -175,155 +154,371 @@ Hello!"></textarea>
     </div>
     <button id="dark-mode-toggle-fs" onclick="toggleDarkMode()">☀️</button>
     <button id="exit-fullscreen" onclick="toggleFullscreen()">□</button>
-
-    <!-- Integrated Storyboard Section -->
-    <div class="storyboard-container" id="storyboardSection">
-        <div class="top-section">
-            <div class="top-fields" id="editFields">
-                <span class="top-label">Title:</span>
-                <input type="text" id="titleField" placeholder="Storyboard Title">
-                <span class="top-label">Director:</span>
-                <input type="text" id="directorField" placeholder="Director Name">
-                <span class="top-label">Sequence:</span>
-                <input type="text" id="sequenceField" placeholder="Sequence">
-            </div>
-            <div class="saved-header" id="savedHeader">
-                <div class="saved-title" id="savedTitle"></div>
-                <span class="saved-director" id="savedDirector"></span>
-                <span class="saved-sequence" id="savedSequence"></span>
-            </div>
-            <button class="save-btn" id="saveBtn" onclick="saveHeader()">Save</button>
-            <button class="edit-btn" id="editBtn" onclick="editHeader()">Edit</button>
-        </div>
-        <div id="storyboardRows"></div>
-        <button onclick="addPanel()">Add Shot</button>
-        <button onclick="window.print()">Print as PDF</button>
-        <button onclick="toggleStoryboard()">Back to Screenplay</button>
-    </div>
-
     <script>
-        // ... (all existing screenplay script code remains unchanged)
-
-        // Storyboard integration scripts (from previous code)
-        let panels = [];
-        let panelId = 0;
-
-        function renderStoryboard() {
-            const rowsWrap = document.getElementById('storyboardRows');
-            rowsWrap.innerHTML = '';
-            for(let i=0; i < panels.length; i += 5) {
-                const rowDiv = document.createElement('div');
-                rowDiv.className = 'storyboard-row';
-                for(let j=i; j < i+5 && j<panels.length; j++) {
-                    rowDiv.appendChild(panels[j]);
+        // Improved Fountain Parser with duplicate character merging, multi-line transition handling, and note handling
+        const fountainParser = (function() {
+            const rules = {
+                scene_heading: /^((?:i(?:nt)?|e(?:xt)?|est|int\/ext|I\/E)[. ].+)|^(?:\.(?!.+ ))(.+)/i,
+                action: /^[^\n]+$/,
+                character: /^(?!\@)([A-Z0-9]{2,})(?:[\s^]+)?$/,
+                dialogue: /^[^\n]+$/,
+                parenthetical: /^\((.+)\)$/,
+                transition: /^((?:fade |cut |smash cut |dissolve )?(?:in|out|to)| iris out).?$/i,
+                note: /^Notes:-/i
+            };
+            function parse(text) {
+                const lines = text.split(/\n/);
+                let html = '';
+                let state = 'action';
+                let potentialTransition = '';
+                let lastCharacter = '';
+                lines.forEach(line => {
+                    line = line.trim();
+                    if (!line) return;
+                    // Handle notes: Render in italics for preview
+                    if (rules.note.test(line)) {
+                        html += `<p class="note">${line}</p>`;
+                        return; // Notes are not part of screenplay flow
+                    }
+                    // Handle duplicate characters
+                    if (rules.character.test(line)) {
+                        if (line === lastCharacter) {
+                            return; // Skip duplicate
+                        }
+                        html += `<p class="character">${line}</p>`;
+                        lastCharacter = line;
+                        state = 'dialogue';
+                        return;
+                    }
+                    lastCharacter = ''; // Reset after non-character line
+                    // Detect and combine potential multi-line transitions
+                    if (/^[A-Z\s:.]+$/.test(line) && state === 'action') {
+                        potentialTransition += (potentialTransition ? ' ' : '') + line;
+                        if (rules.transition.test(potentialTransition)) {
+                            html += `<p class="transition">${potentialTransition}</p>`;
+                            potentialTransition = '';
+                            state = 'action';
+                            return;
+                        }
+                    } else {
+                        if (potentialTransition) {
+                            html += `<p class="action">${potentialTransition}</p>`;
+                            potentialTransition = '';
+                        }
+                    }
+                    if (rules.scene_heading.test(line)) {
+                        html += `<p class="scene-heading">${line}</p>`;
+                        state = 'action';
+                    } else if (rules.transition.test(line)) {
+                        html += `<p class="transition">${line}</p>`;
+                        state = 'action';
+                    } else if (state === 'dialogue' && rules.parenthetical.test(line)) {
+                        html += `<p class="parenthetical">${line}</p>`;
+                    } else if (state === 'dialogue') {
+                        html += `<p class="dialogue">${line}</p>`;
+                    } else {
+                        html += `<p class="action">${line}</p>`;
+                        state = 'action';
+                    }
+                });
+                if (potentialTransition) {
+                    html += `<p class="action">${potentialTransition}</p>`;
                 }
-                rowsWrap.appendChild(rowDiv);
+                return { html: { script: html } };
             }
-        }
-        
-        function addPanel() {
-            panelId++;
-            const panel = document.createElement('div');
-            panel.className = 'storyboard-panel';
-            panel.innerHTML = `
-                <label class="panel-label">Scene Number</label>
-                <input type="text" placeholder="e.g. 1" id="scene${panelId}" oninput="syncPrintLabels(${panelId})">
-                <label class="panel-label">Shot Name</label>
-                <input type="text" placeholder="e.g. Close Up" id="shot${panelId}" oninput="syncPrintLabels(${panelId})">
-                <label class="panel-label">Description</label>
-                <textarea rows="2" placeholder="Describe the scene..." id="desc${panelId}" oninput="syncPrintLabels(${panelId})"></textarea>
-                <input type="file" accept="image/*" id="img${panelId}" onchange="previewImg(event, ${panelId})">
-                <span class="print-shotname" id="printShot${panelId}" style="display:none;"></span>
-                <img id="thumb${panelId}" class="storyboard-thumbnail" src="" alt="Thumbnail" style="display:none;">
-                <span class="print-description" id="printDesc${panelId}" style="display:none;"></span>
-            `;
-            panels.push(panel);
-            renderStoryboard();
-        }
-
-        function toTitleCase(str) {
-            return str.replace(/\w\S*/g, function(txt){
-                return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-            });
-        }
-
-        function toAllCaps(str) {
-            return str.toUpperCase();
-        }
-
-        window.previewImg = function(event, idx) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const thumb = document.getElementById('thumb'+idx);
-                    thumb.style.display = 'block';
-                    thumb.src = e.target.result;
-                }
-                reader.readAsDataURL(file);
+            return { parse: parse };
+        })();
+        const input = document.getElementById('input');
+        const output = document.getElementById('output');
+        const toggleButton = document.getElementById('dark-mode-toggle');
+        const toggleButton2 = document.getElementById('dark-mode-toggle2'); // For title-display
+        const toggleButtonFS = document.getElementById('dark-mode-toggle-fs'); // For fullscreen
+        const autoSaveButton = document.getElementById('auto-save-toggle');
+        const fullscreenToggle = document.getElementById('fullscreen-toggle');
+        const fullscreenToggle2 = document.getElementById('fullscreen-toggle2'); // For title-display
+        const exitFullscreen = document.getElementById('exit-fullscreen');
+        const titleInput = document.getElementById('title');
+        const writerInput = document.getElementById('writer');
+        const titleForm = document.getElementById('title-form');
+        const titleDisplay = document.getElementById('title-display');
+        const displayTitle = document.getElementById('display-title');
+        const displayWriter = document.getElementById('display-writer');
+        let autoSaveInterval = null;
+        let isAutoSaveOn = false;
+        let isFullscreen = false;
+        let currentFontSize = 12; // Initial font size in pt
+        function updatePreview() {
+            if (input.value.trim() === '') {
+                output.innerHTML = '<p>After you type on the left, the preview will appear here.</p>';
+                return;
             }
-        };
-
-        window.syncPrintLabels = function(idx) {
-            const sceneNum = document.getElementById('scene'+idx).value.trim();
-            const shot = document.getElementById('shot'+idx).value.trim();
-            let combinedShotName = '';
-            if(sceneNum && shot){
-                combinedShotName = sceneNum + '. ' + toTitleCase(shot);
-            } else if(sceneNum) {
-                combinedShotName = sceneNum + '.';
-            } else if(shot) {
-                combinedShotName = toTitleCase(shot);
-            }
-            document.getElementById('printShot'+idx).textContent = combinedShotName;
-            document.getElementById('printDesc'+idx).textContent = toTitleCase(document.getElementById('desc'+idx).value.trim());
-        };
-
-        window.saveHeader = function() {
-            const title = toAllCaps(document.getElementById('titleField').value.trim());
-            const director = "Director: " + toTitleCase(document.getElementById('directorField').value.trim());
-            const sequence = "Sequence: " + toTitleCase(document.getElementById('sequenceField').value.trim());
-
-            document.getElementById('savedTitle').textContent = title;
-            document.getElementById('savedDirector').textContent = director;
-            document.getElementById('savedSequence').textContent = sequence;
-
-            document.getElementById('editFields').style.display = 'none';
-            document.getElementById('savedHeader').style.display = 'block';
-            document.getElementById('saveBtn').style.display = 'none';
-            document.getElementById('editBtn').style.display = 'block';
-        };
-
-        window.editHeader = function() {
-            document.getElementById('editFields').style.display = 'flex';
-            document.getElementById('savedHeader').style.display = 'none';
-            document.getElementById('saveBtn').style.display = 'inline-block';
-            document.getElementById('editBtn').style.display = 'none';
-        };
-
-        // Toggle storyboard view
-        function toggleStoryboard() {
-            const editor = document.getElementById('editor');
-            const formatButtons = document.getElementById('format-buttons');
-            const preview = document.getElementById('preview');
-            const storyboard = document.getElementById('storyboardSection');
-
-            if (storyboard.style.display === 'none') {
-                editor.style.display = 'none';
-                formatButtons.style.display = 'none';
-                preview.style.display = 'none';
-                storyboard.style.display = 'block';
-                // Initialize storyboard if needed
-                panels = [];
-                panelId = 0;
-                for(let i=0;i<5;i++) addPanel();
+            const result = fountainParser.parse(input.value);
+            if (result && result.html && result.html.script) {
+                output.innerHTML = result.html.script;
             } else {
-                editor.style.display = 'block';
-                formatButtons.style.display = 'flex';
-                preview.style.display = 'block';
-                storyboard.style.display = 'none';
+                output.innerHTML = '<p>Error parsing. Check syntax.</p>';
             }
         }
+        input.addEventListener('input', updatePreview);
+        updatePreview(); // Initial render
+        // Function to apply formatting to the current/selected line
+        function applyFormat(type) {
+            const start = input.selectionStart;
+            const end = input.selectionEnd;
+            const text = input.value;
+            const lines = text.split('\n');
+            // Find the line index of the cursor/selection
+            let charCount = 0;
+            let lineIndex = -1;
+            for (let i = 0; i < lines.length; i++) {
+                charCount += lines[i].length + 1; // +1 for newline
+                if (start < charCount) {
+                    lineIndex = i;
+                    break;
+                }
+            }
+            if (lineIndex === -1) return; // No line found
+            let line = lines[lineIndex].trim();
+            // Apply format based on type
+            switch (type) {
+                case 'S': // Scene Heading: Uppercase and ensure format
+                    line = line.toUpperCase();
+                    if (!/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/i.test(line)) {
+                        line = 'INT. ' + line; // Default to INT. if not specified
+                    }
+                    break;
+                case 'A': // Action Description: Treat as general action (no change, default margin)
+                case 'G': // General Text: Same as action, ensure left margin (no indent)
+                    // No specific change; parser handles as action with left margin
+                    break;
+                case 'C': // Character: Uppercase
+                    line = line.toUpperCase();
+                    break;
+                case 'D': // Dialogue: No specific change, but ensure it's after character (parser handles)
+                    break;
+                case 'P': // Parenthetical: Wrap in parentheses if not already
+                    if (!/^\((.+\))$/.test(line)) {
+                        line = '(' + line + ')';
+                    }
+                    break;
+                case 'T': // Transition: Uppercase and add colon if missing
+                    line = line.toUpperCase();
+                    if (!line.endsWith(':')) {
+                        line += ':';
+                    }
+                    break;
+                case 'N': // Note: Prefix with "Notes:- " if not already
+                    if (!/^Notes:-/i.test(line)) {
+                        line = 'Notes:- ' + line;
+                    }
+                    break;
+            }
+            // Replace the line, preserving leading/trailing spaces
+            const originalLine = lines[lineIndex];
+            const leadingSpaces = originalLine.match(/^\s*/)[0];
+            const trailingSpaces = originalLine.match(/\s*$/)[0];
+            lines[lineIndex] = leadingSpaces + line + trailingSpaces;
+            // Update textarea value and restore cursor
+            input.value = lines.join('\n');
+            input.selectionStart = input.selectionEnd = start; // Reset cursor
+            updatePreview(); // Refresh preview
+        }
+        function saveFile(auto = false) {
+            const blob = new Blob([input.value], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            if (auto) {
+                const now = new Date();
+                const timestamp = now.toISOString().replace(/T/, '_').replace(/:/g, '-').split('.')[0];
+                a.download = `screenplay_${timestamp}.fountain`;
+            } else {
+                a.download = 'screenplay.fountain';
+            }
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        function toggleAutoSave() {
+            isAutoSaveOn = !isAutoSaveOn;
+            autoSaveButton.textContent = `Auto Save: ${isAutoSaveOn ? 'On' : 'Off'}`;
+            if (isAutoSaveOn) {
+                autoSaveInterval = setInterval(() => saveFile(true), 120000); // Every 2 minutes
+            } else {
+                clearInterval(autoSaveInterval);
+            }
+        }
+        function toggleFullscreen() {
+            isFullscreen = !isFullscreen;
+            document.body.classList.toggle('fullscreen-mode', isFullscreen);
+            if (!isFullscreen) {
+                fullscreenToggle.style.display = 'inline-block'; // Show fullscreen toggle in normal mode
+                fullscreenToggle2.style.display = 'inline-block';
+            }
+        }
+        function setTitle() {
+            const title = titleInput.value.trim();
+            const writer = writerInput.value.trim();
+            if (title || writer) {
+                displayTitle.textContent = title ? `Title: ${title}` : '';
+                displayWriter.textContent = writer ? `Writer: ${writer}` : '';
+                titleForm.style.display = 'none';
+                titleDisplay.style.display = 'block';
+            }
+        }
+        function editTitle() {
+            titleForm.style.display = 'block';
+            titleDisplay.style.display = 'none';
+        }
+        // Zoom function (increases font size by 2pt each time, up to a max)
+        function zoomIn() {
+            currentFontSize += 2;
+            if (currentFontSize > 24) currentFontSize = 24; // Max size
+            document.documentElement.style.setProperty('--font-size', `${currentFontSize}pt`);
+        }
+        function zoomOut() {
+            currentFontSize -= 2;
+            if (currentFontSize < 8) currentFontSize = 8; // Min size
+            document.documentElement.style.setProperty('--font-size', `${currentFontSize}pt`);
+        }
+        function resetZoom() {
+            currentFontSize = 12;
+            document.documentElement.style.setProperty('--font-size', `${currentFontSize}pt`);
+        }
+        // New function for full-screen preview of formatted screenplay
+        function previewFullscreen() {
+            const previewElement = document.getElementById('preview');
+            if (previewElement.requestFullscreen) {
+                previewElement.requestFullscreen();
+            } else if (previewElement.mozRequestFullScreen) { /* Firefox */
+                previewElement.mozRequestFullScreen();
+            } else if (previewElement.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+                previewElement.webkitRequestFullscreen();
+            } else if (previewElement.msRequestFullscreen) { /* IE/Edge */
+                previewElement.msRequestFullscreen();
+            }
+        }
+        function generatePDF(forPrint = false) {
+            if (!window.jspdf) {
+                alert('jsPDF failed to load. Check your internet or try a different browser.');
+                return;
+            }
+            if (output.innerHTML.trim() === '' || output.innerHTML === '<p>After you type on the left, the preview will appear here.</p>') {
+                alert('No content to process. Add screenplay text first.');
+                return;
+            }
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ unit: 'pt', format: 'a4', orientation: 'portrait' });
+            doc.setFont('courier', 'normal');
+            doc.setFontSize(12);
+            // Add title page
+            const title = (displayTitle.textContent.replace('Title: ', '') || titleInput.value.trim() || 'UNTITLED SCREENPLAY').toUpperCase();
+            const writer = displayWriter.textContent.replace('Writer: ', '') || writerInput.value.trim() || 'Unknown Writer';
+            doc.setFontSize(24);
+            doc.setFont('courier', 'bold');
+            doc.text(title, 297.5, 421, { align: 'center' }); // Center on A4
+            doc.setFontSize(12);
+            doc.setFont('courier', 'normal');
+            doc.text('Written by', 297.5, 500, { align: 'center' });
+            doc.text(writer, 297.5, 520, { align: 'center' });
+            doc.addPage(); // Start screenplay on next page
+            // Add screenplay content (skip notes)
+            const elements = output.querySelectorAll('p:not(.note)');
+            let y = 72; // Starting Y (1 inch margin)
+            const pageWidth = 595; // A4 width in pt
+            const pageHeight = 842; // A4 height in pt
+            const leftMargin = 108; // 1.5 inch for action
+            const rightMargin = pageWidth - 72; // 1 inch right
+            const lineHeight = 12; // Standard screenplay line height
+            elements.forEach(el => {
+                let text = el.textContent.trim().replace(/\s+/g, ' '); // Clean extra spaces
+                let x = leftMargin;
+                const className = el.className;
+                // Reset font before each element
+                doc.setFont('courier', 'normal');
+                // Apply styles and positioning
+                if (className === 'scene-heading') {
+                    doc.setFont('courier', 'bold');
+                    text = text.toUpperCase(); // Force uppercase to match preview
+                    x = leftMargin;
+                    y += lineHeight; // Extra space above scenes
+                } else if (className === 'character') {
+                    x = leftMargin + 108; // 2.5 inch indent
+                    y += lineHeight; // Space above character
+                } else if (className === 'dialogue') {
+                    x = leftMargin + 72; // 2 inch indent
+                } else if (className === 'parenthetical') {
+                    x = leftMargin + 90; // 2.2 inch indent
+                    doc.setFont('courier', 'italic');
+                } else if (className === 'transition') {
+                    x = rightMargin - doc.getTextWidth(text); // Right-align
+                    y += lineHeight; // Extra space
+                } else {
+                    x = leftMargin;
+                }
+                // Split long lines, but avoid over-splitting short ones
+                const maxWidth = rightMargin - x - 36;
+                const lines = text.length < 20 ? [text] : doc.splitTextToSize(text, maxWidth);
+                lines.forEach(line => {
+                    if (y + lineHeight > pageHeight - 72) {
+                        doc.addPage();
+                        y = 72;
+                    }
+                    doc.text(line, x, y);
+                    y += lineHeight;
+                });
+                // Reset font after element and add spacing
+                doc.setFont('courier', 'normal');
+                y += lineHeight / 2; // Inter-element spacing
+            });
+            if (forPrint) {
+                doc.autoPrint({ variant: 'non-conform' });
+                window.open(doc.output('bloburl'), '_blank');
+            } else {
+                try {
+                    const filename = `${title}.pdf`;
+                    doc.save(filename);
+                } catch (error) {
+                    console.error('PDF save failed:', error);
+                    alert('Save failed. Check console or try another browser.');
+                    const blob = doc.output('blob');
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${title}.pdf`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                }
+            }
+        }
+        function printPDF() {
+            generatePDF(true);
+        }
+        // Dark Mode Toggle (handles all buttons)
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            toggleButton.textContent = isDark ? '☀️' : '🌙';
+            toggleButton2.textContent = isDark ? '☀️' : '🌙';
+            toggleButtonFS.textContent = isDark ? '☀️' : '🌙';
+            localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
+        }
+        // Load saved dark mode preference
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            toggleDarkMode();
+        } else {
+            toggleButton.textContent = '🌙';
+            toggleButton2.textContent = '🌙';
+            toggleButtonFS.textContent = '🌙';
+        }
+        // Debug: Log if parser and jsPDF are ready
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.jspdf) {
+                console.log('jsPDF loaded successfully.');
+            } else {
+                console.error('jsPDF failed to load. Check CDN.');
+            }
+            console.log('Fountain parser loaded and ready.');
+        });
     </script>
 </body>
 </html>
