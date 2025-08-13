@@ -11,15 +11,6 @@
             --border-color: #ccc;
             --preview-bg: #f0f0f0;
             --font-size: 12pt; /* Default font size for zoom */
-            body.dark-mode .controls button,
-body.dark-mode #dark-mode-toggle,
-body.dark-mode #dark-mode-toggle2,
-body.dark-mode #dark-mode-toggle-fs,
-body.dark-mode #fullscreen-toggle,
-body.dark-mode #fullscreen-toggle2,
-body.dark-mode #exit-fullscreen {
-    color: #ddd; /* Pure white for symbols in dark mode */
-}
         }
         body.dark-mode {
             --bg-color: #1e1e1e;
@@ -108,6 +99,31 @@ body.dark-mode #exit-fullscreen {
         }
         body.flip-layout #editor, body.flip-layout #preview, body.flip-layout #format-buttons {
             direction: ltr;
+        }
+        body.dark-mode .controls button,
+        body.dark-mode #dark-mode-toggle,
+        body.dark-mode #dark-mode-toggle2,
+        body.dark-mode #dark-mode-toggle-fs,
+        body.dark-mode #fullscreen-toggle,
+        body.dark-mode #fullscreen-toggle2,
+        body.dark-mode #exit-fullscreen {
+            color: #fff; /* Pure white for symbols in dark mode */
+        }
+        body.preview-fullscreen-mode #preview {
+            display: block !important; /* Override hide in fullscreen */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1000;
+            background: var(--preview-bg);
+            padding: 20px;
+            overflow-y: auto;
+        }
+        body.preview-fullscreen-mode #editor,
+        body.preview-fullscreen-mode #format-buttons {
+            display: none;
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -420,14 +436,26 @@ Hello!"></textarea>
         // New function for full-screen preview of formatted screenplay
         function previewFullscreen() {
             const previewElement = document.getElementById('preview');
+            document.body.classList.add('preview-fullscreen-mode');
             if (previewElement.requestFullscreen) {
-                previewElement.requestFullscreen();
+                previewElement.requestFullscreen().then(() => {
+                    // Optional: Update on enter
+                }).catch(err => {
+                    console.error('Fullscreen error:', err);
+                });
             } else if (previewElement.mozRequestFullScreen) { /* Firefox */
                 previewElement.mozRequestFullScreen();
             } else if (previewElement.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
                 previewElement.webkitRequestFullscreen();
             } else if (previewElement.msRequestFullscreen) { /* IE/Edge */
                 previewElement.msRequestFullscreen();
+            }
+            // Listen for fullscreen change to exit mode
+            document.addEventListener('fullscreenchange', handlePreviewExit);
+        }
+        function handlePreviewExit() {
+            if (!document.fullscreenElement) {
+                document.body.classList.remove('preview-fullscreen-mode');
             }
         }
         function generatePDF(forPrint = false) {
