@@ -96,18 +96,21 @@
     <div id="editor">
         <div id="title-form">
             <div class="title-line">
-                <input id="title" placeholder="Screenplay Title">
-            </div>
-           <div style="display: flex; align-items: flex-start;">
-    <div class="controls" style="display: flex; flex-direction: column; gap: 5px; margin-right: 10px;">
-        <button onclick="setTitle()">Save Title</button>
+    <input id="title" placeholder="Screenplay Title">
+</div>
+<div class="title-line">
+    <input id="writer" placeholder="Writer Name">
+</div>
+<div class="title-line">
+    <button onclick="setTitle()">Save Title</button>
+    <div class="controls">
         <button id="dark-mode-toggle" onclick="toggleDarkMode()">☀️</button>
         <button onclick="zoomIn()">+</button>
         <button onclick="zoomOut()">-</button>
         <button onclick="resetZoom()">R</button>
         <button id="fullscreen-toggle" onclick="toggleFullscreen()">⛶</button>
     </div>
-    <div>
+</div>
         <input id="title" placeholder="Screenplay Title"><br>
         <input id="writer" placeholder="Writer Name">
     </div>
