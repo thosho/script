@@ -49,11 +49,11 @@
             cursor: pointer; 
         }
         #preview { flex: 1; padding: 20px; overflow-y: auto; background: var(--preview-bg); }
-        textarea { width: 100%; height: 80%; font-size: var(--font-size); border: 1px solid var(--border-color); resize: none; background: var(--bg-color); color: var(--text-color); } /* Increased vertical size, with zoom variable */
-        input { width: calc(100% - 200px); margin-bottom: 10px; padding: 5px; font-size: 12pt; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); display: inline-block; } /* Adjusted width to leave space on right */
+        textarea { width: 100%; height: 80%; font-size: var(--font-size); border: 1px solid var(--border-color); resize: none; background: var(--bg-color); color: var(--text-color); margin-bottom: 5px; } /* Reduced space below textarea */
+        input { width: calc(100% - 200px); margin-bottom: 5px; padding: 5px; font-size: 12pt; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); display: inline-block; } /* Reduced space below inputs */
         #title-form button, #title-display button { margin-left: 5px; padding: 5px 10px; vertical-align: top; } /* Buttons next to fields */
-        button { margin-top: 10px; padding: 3px 6px; margin-right: 5px; font-size: 10pt; } /* Reduced button size */
-        .buttons-row { display: flex; align-items: center; flex-wrap: nowrap; } /* Keep buttons in one line */
+        button { margin-top: 0; padding: 3px 6px; margin-right: 2px; font-size: 10pt; } /* Reduced button size and spacing */
+        .buttons-row { display: flex; align-items: center; flex-wrap: nowrap; margin-top: 5px; } /* Reduced space above buttons row */
         .scene-heading { font-weight: bold; text-transform: uppercase; margin: 1em 0; }
         .action { margin: 1em 0; }
         .character { text-transform: uppercase; margin: 2em 0 0 0; text-align: left; width: 60%; margin-left: 20%; }
@@ -69,23 +69,37 @@
         body.fullscreen-mode #format-buttons { position: absolute; top: 50%; right: 10px; transform: translateY(-50%); flex-direction: column; width: auto; padding: 0; border: none; background: transparent; } /* Vertical on right side */
         body.fullscreen-mode #format-buttons button { margin: 3px 0; }
         body.fullscreen-mode #exit-fullscreen { display: block; position: absolute; top: 10px; right: 10px; } /* Next to dark mode */
-        body.fullscreen-mode textarea { height: calc(95% - 40px); margin-top: 40px; } /* Adjust height and add margin for top bar */
+        body.fullscreen-mode textarea { height: calc(95% - 40px); margin-top: 40px; margin-bottom: 5px; } /* Adjust height and reduce space */
         body.fullscreen-mode #title-form { display: none; }
         body.fullscreen-mode #title-display { display: block; position: absolute; top: 0; left: 0; width: 100%; height: 40px; background: var(--bg-color); border-bottom: 1px solid var(--border-color); text-align: left; padding: 10px; box-sizing: border-box; } /* Top bar for title/writer and buttons */
         body.fullscreen-mode #title-display .controls { display: none; } /* Hide zoom and fullscreen in fullscreen */
         body.fullscreen-mode #title-edit { display: none; } /* Hide Edit Title in fullscreen */
-        body.fullscreen-mode .buttons-row { display: none; }
         body.fullscreen-mode #auto-save-toggle { display: none; }
         body.fullscreen-mode #dark-mode-toggle-fs { display: block; position: absolute; top: 10px; right: 50px; font-size: 16px; background: none; border: none; cursor: pointer; } /* Dark mode next to exit in fullscreen */
+        body.fullscreen-mode .buttons-row { display: flex; position: absolute; bottom: 10px; left: 10px; right: 10px; justify-content: space-around; } /* Show buttons in fullscreen at bottom */
         #dark-mode-toggle-fs { display: none; }
         #title-display { margin-top: 10px; font-size: 12pt; }
         #title-edit { margin-left: 5px; padding: 5px 10px; vertical-align: top; } /* Edit button close to display text, within editor frame */
-        .title-line { display: flex; align-items: center; margin-bottom: 10px; } /* Line for inputs and buttons */
+        .title-line { display: flex; align-items: center; margin-bottom: 5px; } /* Reduced space between title lines */
         .controls { display: inline-flex; align-items: center; } /* Controls group */
         .controls button { margin-left: 5px; padding: 5px; font-size: 16px; background: none; border: none; cursor: pointer; }
         #display-title, #display-writer { margin: 0; display: inline-block; }
         #title-display .title-line { justify-content: space-between; } /* Align title/writer and controls */
         #title-display .edit-controls { display: flex; align-items: center; }
+        body.flip-layout {
+            flex-direction: row-reverse;
+        }
+        body.flip-layout #editor {
+            border-left: 1px solid var(--border-color);
+            border-right: none;
+        }
+        body.flip-layout #format-buttons {
+            border-left: 1px solid var(--border-color);
+            border-right: none;
+        }
+        body.flip-layout #editor, body.flip-layout #preview, body.flip-layout #format-buttons {
+            direction: ltr;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
@@ -106,6 +120,7 @@
                     <button onclick="zoomOut()">-</button>
                     <button onclick="resetZoom()">R</button>
                     <button id="fullscreen-toggle" onclick="toggleFullscreen()">⛶</button>
+                    <button onclick="toggleFlipLayout()"><></button>
                 </div>
             </div>
         </div>
@@ -123,24 +138,21 @@
                         <button onclick="zoomOut()">-</button>
                         <button onclick="resetZoom()">R</button>
                         <button id="fullscreen-toggle2" onclick="toggleFullscreen()">⛶</button>
+                        <button onclick="toggleFlipLayout()"><O></button>
                     </div>
                 </div>
             </div>
         </div>
-        <textarea id="input" placeholder="Type Screenplay here... Example
-        
-INT. HOUSE - DAY
-He is writing a story
+        <textarea id="input" placeholder="Type Screenplay here... e.g., INT. HOUSE - DAY
 
 SANTHOSH
-(thinking)
-what i am going to start with?"></textarea>
+Hello!"></textarea>
         <div class="buttons-row">
             <button onclick="saveFile()">Save as .fountain</button>
             <button onclick="printPDF()">Print PDF</button>
             <button onclick="previewFullscreen()">Preview Fullscreen</button>
             <button id="auto-save-toggle" onclick="toggleAutoSave()">Auto Save: Off</button>
-            <a href="https://filmfolks.github.io/storyboard/" target="_blank" style="text-decoration: none;">
+             <a href="https://filmfolks.github.io/storyboard/" target="_blank" style="text-decoration: none;">
                 <button>Storyboard</button>
             </a>
         </div>
@@ -253,6 +265,7 @@ what i am going to start with?"></textarea>
         let autoSaveInterval = null;
         let isAutoSaveOn = false;
         let isFullscreen = false;
+        let isFlipped = false;
         let currentFontSize = 12; // Initial font size in pt
         function updatePreview() {
             if (input.value.trim() === '') {
@@ -361,6 +374,10 @@ what i am going to start with?"></textarea>
                 fullscreenToggle.style.display = 'inline-block'; // Show fullscreen toggle in normal mode
                 fullscreenToggle2.style.display = 'inline-block';
             }
+        }
+        function toggleFlipLayout() {
+            isFlipped = !isFlipped;
+            document.body.classList.toggle('flip-layout', isFlipped);
         }
         function setTitle() {
             const title = titleInput.value.trim();
