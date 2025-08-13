@@ -2,48 +2,70 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>FILM FOLKS STORYBOARD</title>
+    <title>Storyboard Landscape - 5 Frames Per Row</title>
     <style>
         body { font-family: Arial, sans-serif; background: #fafafa; }
         .storyboard-container { max-width: 1200px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 10px #bbb; padding: 24px; }
-        .top-fields { display: flex; gap: 32px; margin-bottom: 28px; align-items: center; }
-        .top-fields input { font-size: 17px; padding: 6px 9px; border: 1px solid #bbb; border-radius: 4px; width: 300px; }
+        .top-section { display: flex; justify-content: center; align-items: center; margin-bottom: 20px; position: relative; }
+        .top-fields { display: flex; gap: 32px; align-items: center; }
+        .top-fields input { font-size: 17px; padding: 6px 9px; border: 1px solid #bbb; border-radius: 4px; width: 230px; }
         .top-label { font-weight: bold; margin-right: 8px; }
+        .saved-header { display: none; text-align: center; }
+        .saved-title { font-size: 18px; font-weight: bold; letter-spacing: 1px; margin-bottom: 2px; }
+        .saved-director, .saved-sequence { font-size: 13px; font-weight: normal; margin-right: 16px; }
+        .save-btn { margin-left: 20px; padding: 8px 16px; background: #28a745; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+        .save-btn:hover { background: #218838; }
+        .edit-btn { display: none; padding: 8px 16px; background: #ffc107; color: #212529; border: none; border-radius: 5px; cursor: pointer; position: absolute; right: 0; }
+        .edit-btn:hover { background: #e0a800; }
         .storyboard-row { display: flex; flex-direction: row; gap: 24px; margin-bottom: 32px; }
         .storyboard-panel { width: 220px; background: #f4f4f4; border-radius: 8px; padding: 14px; box-sizing: border-box; flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; }
-        .storyboard-thumbnail { width: 190px; height: 120px; background: #ddd; border-radius: 4px; object-fit: cover; margin-bottom: 12px; }
+        .storyboard-thumbnail { width: 190px; height: 120px; background: #ddd; border-radius: 4px; object-fit: cover; margin-bottom: 12px; margin-top: 4px; }
         .panel-label { font-weight: bold; margin-bottom: 3px; width: 190px; text-align: left; }
         input, textarea { width: 190px; margin-bottom: 8px; font-size: 15px; padding: 4px 7px; box-sizing: border-box; border-radius: 3px; border: 1px solid #ccc; }
         textarea { resize: vertical; }
-        button { margin: 20px 7px 0; padding: 10px 24px; background: #2274a5; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
-        button:hover { background: #174668; }
+        button:not(.save-btn):not(.edit-btn) { margin: 20px 7px 0; padding: 10px 24px; background: #2274a5; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+        button:not(.save-btn):not(.edit-btn):hover { background: #174668; }
 
         /* Print styling */
         @media print {
-            button, input[type="file"], .panel-label, .top-label { display: none !important; }
+            @page { margin: 0.5cm; }
+            button, input[type="file"], .panel-label, .top-label, .edit-btn, .save-btn { display: none !important; }
             input, textarea { display: none !important; }
-            .print-value { display: block !important; margin-bottom: 10px; font-size: 15px; width: 190px; color: #111; border: none; padding: 0; }
-            .print-header { display: block !important; font-size: 24px; font-weight: bold; margin-bottom: 4px; }
-            .print-writer { display: block !important; font-size: 18px; margin-bottom: 30px; }
+            .top-section { margin-bottom: 16px; }
+            .top-fields { display: none !important; }
+            .saved-header { display: block !important; text-align: center; }
+            .storyboard-container { max-width: 100%; padding: 10px; box-shadow: none; margin: 0; }
+            .storyboard-row { gap: 12px; justify-content: center; }
+            .storyboard-panel { width: 180px; padding: 8px; }
+            .storyboard-thumbnail { width: 160px; height: 100px; }
+            .print-shotname { display: block !important; font-size: 14px; font-weight: bold; width: 160px; text-align: center; margin-bottom: 5px; margin-top: 0; }
+            .print-description { display: block !important; font-size: 13px; width: 160px; background: none; color: #111; border: none; padding: 0; text-align: center; margin-top: 8px; }
         }
     </style>
 </head>
 <body>
     <div class="storyboard-container">
-        <div class="top-fields">
-            <span class="top-label">Title:</span>
-            <input type="text" id="titleField" placeholder="Storyboard Title" oninput="syncPrintHeader()">
-            <span class="top-label">Writer:</span>
-            <input type="text" id="writerField" placeholder="Writer Name" oninput="syncPrintHeader()">
+        <div class="top-section">
+            <div class="top-fields" id="editFields">
+                <span class="top-label">Title:</span>
+                <input type="text" id="titleField" placeholder="Storyboard Title">
+                <span class="top-label">Director:</span>
+                <input type="text" id="directorField" placeholder="Director Name">
+                <span class="top-label">Sequence:</span>
+                <input type="text" id="sequenceField" placeholder="Sequence">
+            </div>
+            <div class="saved-header" id="savedHeader">
+                <div class="saved-title" id="savedTitle"></div>
+                <span class="saved-director" id="savedDirector"></span>
+                <span class="saved-sequence" id="savedSequence"></span>
+            </div>
+            <button class="save-btn" id="saveBtn" onclick="saveHeader()">Save</button>
+            <button class="edit-btn" id="editBtn" onclick="editHeader()">Edit</button>
         </div>
-        <span class="print-header" id="printTitle" style="display:none;"></span>
-        <span class="print-writer" id="printWriter" style="display:none;"></span>
-
         <div id="storyboardRows"></div>
         <button onclick="addPanel()">Add Shot</button>
         <button onclick="window.print()">Print as PDF</button>
     </div>
-
     <script>
         let panels = [];
         let panelId = 0;
@@ -60,26 +82,35 @@
                 rowsWrap.appendChild(rowDiv);
             }
         }
-        
+
         function addPanel() {
             panelId++;
             const panel = document.createElement('div');
             panel.className = 'storyboard-panel';
             panel.innerHTML = `
-                <label class="panel-label" id="scn${panelId}">Scene Number</label>
-                <input type="text" placeholder="e.g. 17" id="scene${panelId}" oninput="syncPrintLabels(${panelId})">
-                <span class="print-value" id="printScene${panelId}" style="display:none;"></span>
-                <label class="panel-label" id="shl${panelId}">Shot</label>
-                <input type="text" placeholder="e.g. Close-up" id="shot${panelId}" oninput="syncPrintLabels(${panelId})">
-                <span class="print-value" id="printShot${panelId}" style="display:none;"></span>
-                <label class="panel-label" id="dcl${panelId}">Description</label>
+                <label class="panel-label">Scene Number</label>
+                <input type="text" placeholder="e.g. 1" id="scene${panelId}" oninput="syncPrintLabels(${panelId})">
+                <label class="panel-label">Shot Name</label>
+                <input type="text" placeholder="e.g. Close Up" id="shot${panelId}" oninput="syncPrintLabels(${panelId})">
+                <label class="panel-label">Description</label>
                 <textarea rows="2" placeholder="Describe the scene..." id="desc${panelId}" oninput="syncPrintLabels(${panelId})"></textarea>
-                <span class="print-value" id="printDesc${panelId}" style="display:none;"></span>
                 <input type="file" accept="image/*" id="img${panelId}" onchange="previewImg(event, ${panelId})">
+                <span class="print-shotname" id="printShot${panelId}" style="display:none;"></span>
                 <img id="thumb${panelId}" class="storyboard-thumbnail" src="" alt="Thumbnail" style="display:none;">
+                <span class="print-description" id="printDesc${panelId}" style="display:none;"></span>
             `;
             panels.push(panel);
             renderStoryboard();
+        }
+
+        function toTitleCase(str) {
+            return str.replace(/\w\S*/g, function(txt){
+                return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+            });
+        }
+
+        function toAllCaps(str) {
+            return str.toUpperCase();
         }
 
         window.previewImg = function(event, idx) {
@@ -96,14 +127,42 @@
         };
 
         window.syncPrintLabels = function(idx) {
-            document.getElementById('printScene'+idx).textContent = document.getElementById('scene'+idx).value;
-            document.getElementById('printShot'+idx).textContent = document.getElementById('shot'+idx).value;
-            document.getElementById('printDesc'+idx).textContent = document.getElementById('desc'+idx).value;
+            const sceneNum = document.getElementById('scene'+idx).value.trim();
+            const shot = document.getElementById('shot'+idx).value.trim();
+            let combinedShotName = '';
+            if(sceneNum && shot){
+                combinedShotName = sceneNum + '. ' + toTitleCase(shot);
+            } else if(sceneNum) {
+                combinedShotName = sceneNum + '.';
+            } else if(shot) {
+                combinedShotName = toTitleCase(shot);
+            }
+            document.getElementById('printShot'+idx).textContent = combinedShotName;
+            document.getElementById('printDesc'+idx).textContent = toTitleCase(document.getElementById('desc'+idx).value.trim());
         };
 
-        window.syncPrintHeader = function() {
-            document.getElementById('printTitle').textContent = document.getElementById('titleField').value;
-            document.getElementById('printWriter').textContent = document.getElementById('writerField').value;
+        // Save and display header
+        window.saveHeader = function() {
+            const title = toAllCaps(document.getElementById('titleField').value.trim());
+            const director = "Director: " + toTitleCase(document.getElementById('directorField').value.trim());
+            const sequence = "Sequence: " + toTitleCase(document.getElementById('sequenceField').value.trim());
+
+            document.getElementById('savedTitle').textContent = title;
+            document.getElementById('savedDirector').textContent = director;
+            document.getElementById('savedSequence').textContent = sequence;
+
+            document.getElementById('editFields').style.display = 'none';
+            document.getElementById('savedHeader').style.display = 'block';
+            document.getElementById('saveBtn').style.display = 'none';
+            document.getElementById('editBtn').style.display = 'block';
+        };
+
+        // Edit header
+        window.editHeader = function() {
+            document.getElementById('editFields').style.display = 'flex';
+            document.getElementById('savedHeader').style.display = 'none';
+            document.getElementById('saveBtn').style.display = 'inline-block';
+            document.getElementById('editBtn').style.display = 'none';
         };
 
         // Add five panels by default
