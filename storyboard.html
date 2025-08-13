@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Storyboard Page</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f7f7f7; }
+        .storyboard { max-width: 900px; margin: 30px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #bbb; padding: 20px; }
+        .board-row { display: flex; flex-wrap: wrap; margin-bottom: 24px; }
+        .board-cell { flex: 1; min-width: 260px; margin: 0 10px; background: #eee; border-radius: 6px; padding: 14px; box-sizing: border-box; margin-bottom: 8px; }
+        .board-cell img { max-width: 100%; border-radius: 4px; margin-bottom: 8px; }
+        .label { font-weight: bold; margin-top: 6px; display: block; }
+        input, textarea, select { width: 100%; margin-top: 4px; padding: 6px; box-sizing: border-box; border-radius: 3px; border: 1px solid #ccc; }
+        button { margin-top: 16px; padding: 10px 20px; background: #0077cc; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+        button:hover { background: #005fa3; }
+    </style>
+</head>
+<body>
+    <div class="storyboard" id="storyboard">
+        <h1>Storyboard</h1>
+        <div id="boards"></div>
+        <button onclick="addCell()">Add New Shot</button>
+        <button onclick="printPDF()">Print as PDF</button>
+    </div>
+
+    <script>
+        let boardsCount = 0;
+
+        function addCell() {
+            boardsCount++;
+            const boardsDiv = document.getElementById('boards');
+            const cell = document.createElement('div');
+            cell.className = 'board-cell';
+            cell.innerHTML = `
+                <label class="label">Shot Name</label>
+                <input type="text" placeholder="e.g. Two-Shot" id="shot${boardsCount}">
+                <label class="label">Scene Description</label>
+                <textarea rows="2" placeholder="Describe the scene..." id="desc${boardsCount}"></textarea>
+                <label class="label">Add Photo</label>
+                <input type="file" accept="image/*" id="img${boardsCount}" onchange="previewImg(event, ${boardsCount})">
+                <div id="preview${boardsCount}" style="margin-top:10px;"></div>
+            `;
+            boardsDiv.appendChild(cell);
+        }
+
+        function previewImg(event, idx) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('preview'+idx).innerHTML = `<img src="${e.target.result}">`;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function printPDF() {
+            window.print(); // This allows browser printing; use a PDF printer or Save as PDF option in dialog.
+        }
+
+        // Add initial cells for convenience
+        for (let i = 0; i < 3; i++) addCell();
+    </script>
+</body>
+</html>
