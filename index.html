@@ -136,9 +136,6 @@ Hello!"></textarea>
             <button onclick="printPDF()">Print PDF</button>
             <button onclick="previewFullscreen()">Preview Fullscreen</button>
             <button id="auto-save-toggle" onclick="toggleAutoSave()">Auto Save: Off</button>
-            <a href="https://filmfolks.github.io/storyboard/" target="_blank" style="text-decoration: none;">
-                <button>Storyboard</button>
-            </a>
         </div>
     </div>
     <div id="format-buttons">
@@ -180,7 +177,7 @@ Hello!"></textarea>
                     if (!line) return;
                     // Handle notes: Render in italics for preview
                     if (rules.note.test(line)) {
-                        html += <p class="note">${line}</p>;
+                        html += `<p class="note">${line}</p>`;
                         return; // Notes are not part of screenplay flow
                     }
                     // Handle duplicate characters
@@ -188,7 +185,7 @@ Hello!"></textarea>
                         if (line === lastCharacter) {
                             return; // Skip duplicate
                         }
-                        html += <p class="character">${line}</p>;
+                        html += `<p class="character">${line}</p>`;
                         lastCharacter = line;
                         state = 'dialogue';
                         return;
@@ -198,34 +195,34 @@ Hello!"></textarea>
                     if (/^[A-Z\s:.]+$/.test(line) && state === 'action') {
                         potentialTransition += (potentialTransition ? ' ' : '') + line;
                         if (rules.transition.test(potentialTransition)) {
-                            html += <p class="transition">${potentialTransition}</p>;
+                            html += `<p class="transition">${potentialTransition}</p>`;
                             potentialTransition = '';
                             state = 'action';
                             return;
                         }
                     } else {
                         if (potentialTransition) {
-                            html += <p class="action">${potentialTransition}</p>;
+                            html += `<p class="action">${potentialTransition}</p>`;
                             potentialTransition = '';
                         }
                     }
                     if (rules.scene_heading.test(line)) {
-                        html += <p class="scene-heading">${line}</p>;
+                        html += `<p class="scene-heading">${line}</p>`;
                         state = 'action';
                     } else if (rules.transition.test(line)) {
-                        html += <p class="transition">${line}</p>;
+                        html += `<p class="transition">${line}</p>`;
                         state = 'action';
                     } else if (state === 'dialogue' && rules.parenthetical.test(line)) {
-                        html += <p class="parenthetical">${line}</p>;
+                        html += `<p class="parenthetical">${line}</p>`;
                     } else if (state === 'dialogue') {
-                        html += <p class="dialogue">${line}</p>;
+                        html += `<p class="dialogue">${line}</p>`;
                     } else {
-                        html += <p class="action">${line}</p>;
+                        html += `<p class="action">${line}</p>`;
                         state = 'action';
                     }
                 });
                 if (potentialTransition) {
-                    html += <p class="action">${potentialTransition}</p>;
+                    html += `<p class="action">${potentialTransition}</p>`;
                 }
                 return { html: { script: html } };
             }
@@ -334,7 +331,7 @@ Hello!"></textarea>
             if (auto) {
                 const now = new Date();
                 const timestamp = now.toISOString().replace(/T/, '_').replace(/:/g, '-').split('.')[0];
-                a.download = screenplay_${timestamp}.fountain;
+                a.download = `screenplay_${timestamp}.fountain`;
             } else {
                 a.download = 'screenplay.fountain';
             }
@@ -343,7 +340,7 @@ Hello!"></textarea>
         }
         function toggleAutoSave() {
             isAutoSaveOn = !isAutoSaveOn;
-            autoSaveButton.textContent = Auto Save: ${isAutoSaveOn ? 'On' : 'Off'};
+            autoSaveButton.textContent = `Auto Save: ${isAutoSaveOn ? 'On' : 'Off'}`;
             if (isAutoSaveOn) {
                 autoSaveInterval = setInterval(() => saveFile(true), 120000); // Every 2 minutes
             } else {
@@ -362,8 +359,8 @@ Hello!"></textarea>
             const title = titleInput.value.trim();
             const writer = writerInput.value.trim();
             if (title || writer) {
-                displayTitle.textContent = title ? Title: ${title} : '';
-                displayWriter.textContent = writer ? Writer: ${writer} : '';
+                displayTitle.textContent = title ? `Title: ${title}` : '';
+                displayWriter.textContent = writer ? `Writer: ${writer}` : '';
                 titleForm.style.display = 'none';
                 titleDisplay.style.display = 'block';
             }
@@ -376,16 +373,16 @@ Hello!"></textarea>
         function zoomIn() {
             currentFontSize += 2;
             if (currentFontSize > 24) currentFontSize = 24; // Max size
-            document.documentElement.style.setProperty('--font-size', ${currentFontSize}pt);
+            document.documentElement.style.setProperty('--font-size', `${currentFontSize}pt`);
         }
         function zoomOut() {
             currentFontSize -= 2;
             if (currentFontSize < 8) currentFontSize = 8; // Min size
-            document.documentElement.style.setProperty('--font-size', ${currentFontSize}pt);
+            document.documentElement.style.setProperty('--font-size', `${currentFontSize}pt`);
         }
         function resetZoom() {
             currentFontSize = 12;
-            document.documentElement.style.setProperty('--font-size', ${currentFontSize}pt);
+            document.documentElement.style.setProperty('--font-size', `${currentFontSize}pt`);
         }
         // New function for full-screen preview of formatted screenplay
         function previewFullscreen() {
@@ -478,7 +475,7 @@ Hello!"></textarea>
                 window.open(doc.output('bloburl'), '_blank');
             } else {
                 try {
-                    const filename = ${title}.pdf;
+                    const filename = `${title}.pdf`;
                     doc.save(filename);
                 } catch (error) {
                     console.error('PDF save failed:', error);
@@ -487,7 +484,7 @@ Hello!"></textarea>
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = ${title}.pdf;
+                    a.download = `${title}.pdf`;
                     a.click();
                     URL.revokeObjectURL(url);
                 }
@@ -524,4 +521,4 @@ Hello!"></textarea>
         });
     </script>
 </body>
-</html> 
+</html>
