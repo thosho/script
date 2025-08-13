@@ -2,64 +2,112 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Storyboard Page</title>
+    <title>FILM FOLKS STORYBOARD</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f7f7f7; }
-        .storyboard { max-width: 900px; margin: 30px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #bbb; padding: 20px; }
-        .board-row { display: flex; flex-wrap: wrap; margin-bottom: 24px; }
-        .board-cell { flex: 1; min-width: 260px; margin: 0 10px; background: #eee; border-radius: 6px; padding: 14px; box-sizing: border-box; margin-bottom: 8px; }
-        .board-cell img { max-width: 100%; border-radius: 4px; margin-bottom: 8px; }
-        .label { font-weight: bold; margin-top: 6px; display: block; }
-        input, textarea, select { width: 100%; margin-top: 4px; padding: 6px; box-sizing: border-box; border-radius: 3px; border: 1px solid #ccc; }
-        button { margin-top: 16px; padding: 10px 20px; background: #0077cc; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
-        button:hover { background: #005fa3; }
+        body { font-family: Arial, sans-serif; background: #fafafa; }
+        .storyboard-container { max-width: 1200px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 10px #bbb; padding: 24px; }
+        .top-fields { display: flex; gap: 32px; margin-bottom: 28px; align-items: center; }
+        .top-fields input { font-size: 17px; padding: 6px 9px; border: 1px solid #bbb; border-radius: 4px; width: 300px; }
+        .top-label { font-weight: bold; margin-right: 8px; }
+        .storyboard-row { display: flex; flex-direction: row; gap: 24px; margin-bottom: 32px; }
+        .storyboard-panel { width: 220px; background: #f4f4f4; border-radius: 8px; padding: 14px; box-sizing: border-box; flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; }
+        .storyboard-thumbnail { width: 190px; height: 120px; background: #ddd; border-radius: 4px; object-fit: cover; margin-bottom: 12px; }
+        .panel-label { font-weight: bold; margin-bottom: 3px; width: 190px; text-align: left; }
+        input, textarea { width: 190px; margin-bottom: 8px; font-size: 15px; padding: 4px 7px; box-sizing: border-box; border-radius: 3px; border: 1px solid #ccc; }
+        textarea { resize: vertical; }
+        button { margin: 20px 7px 0; padding: 10px 24px; background: #2274a5; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #174668; }
+
+        /* Print styling */
+        @media print {
+            button, input[type="file"], .panel-label, .top-label { display: none !important; }
+            input, textarea { display: none !important; }
+            .print-value { display: block !important; margin-bottom: 10px; font-size: 15px; width: 190px; color: #111; border: none; padding: 0; }
+            .print-header { display: block !important; font-size: 24px; font-weight: bold; margin-bottom: 4px; }
+            .print-writer { display: block !important; font-size: 18px; margin-bottom: 30px; }
+        }
     </style>
 </head>
 <body>
-    <div class="storyboard" id="storyboard">
-        <h1>Storyboard</h1>
-        <div id="boards"></div>
-        <button onclick="addCell()">Add New Shot</button>
-        <button onclick="printPDF()">Print as PDF</button>
+    <div class="storyboard-container">
+        <div class="top-fields">
+            <span class="top-label">Title:</span>
+            <input type="text" id="titleField" placeholder="Storyboard Title" oninput="syncPrintHeader()">
+            <span class="top-label">Writer:</span>
+            <input type="text" id="writerField" placeholder="Writer Name" oninput="syncPrintHeader()">
+        </div>
+        <span class="print-header" id="printTitle" style="display:none;"></span>
+        <span class="print-writer" id="printWriter" style="display:none;"></span>
+
+        <div id="storyboardRows"></div>
+        <button onclick="addPanel()">Add Shot</button>
+        <button onclick="window.print()">Print as PDF</button>
     </div>
 
     <script>
-        let boardsCount = 0;
+        let panels = [];
+        let panelId = 0;
 
-        function addCell() {
-            boardsCount++;
-            const boardsDiv = document.getElementById('boards');
-            const cell = document.createElement('div');
-            cell.className = 'board-cell';
-            cell.innerHTML = `
-                <label class="label">Shot Name</label>
-                <input type="text" placeholder="e.g. Two-Shot" id="shot${boardsCount}">
-                <label class="label">Scene Description</label>
-                <textarea rows="2" placeholder="Describe the scene..." id="desc${boardsCount}"></textarea>
-                <label class="label">Add Photo</label>
-                <input type="file" accept="image/*" id="img${boardsCount}" onchange="previewImg(event, ${boardsCount})">
-                <div id="preview${boardsCount}" style="margin-top:10px;"></div>
+        function renderStoryboard() {
+            const rowsWrap = document.getElementById('storyboardRows');
+            rowsWrap.innerHTML = '';
+            for(let i=0; i < panels.length; i += 5) {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'storyboard-row';
+                for(let j=i; j < i+5 && j<panels.length; j++) {
+                    rowDiv.appendChild(panels[j]);
+                }
+                rowsWrap.appendChild(rowDiv);
+            }
+        }
+        
+        function addPanel() {
+            panelId++;
+            const panel = document.createElement('div');
+            panel.className = 'storyboard-panel';
+            panel.innerHTML = `
+                <label class="panel-label" id="scn${panelId}">Scene Number</label>
+                <input type="text" placeholder="e.g. 17" id="scene${panelId}" oninput="syncPrintLabels(${panelId})">
+                <span class="print-value" id="printScene${panelId}" style="display:none;"></span>
+                <label class="panel-label" id="shl${panelId}">Shot</label>
+                <input type="text" placeholder="e.g. Close-up" id="shot${panelId}" oninput="syncPrintLabels(${panelId})">
+                <span class="print-value" id="printShot${panelId}" style="display:none;"></span>
+                <label class="panel-label" id="dcl${panelId}">Description</label>
+                <textarea rows="2" placeholder="Describe the scene..." id="desc${panelId}" oninput="syncPrintLabels(${panelId})"></textarea>
+                <span class="print-value" id="printDesc${panelId}" style="display:none;"></span>
+                <input type="file" accept="image/*" id="img${panelId}" onchange="previewImg(event, ${panelId})">
+                <img id="thumb${panelId}" class="storyboard-thumbnail" src="" alt="Thumbnail" style="display:none;">
             `;
-            boardsDiv.appendChild(cell);
+            panels.push(panel);
+            renderStoryboard();
         }
 
-        function previewImg(event, idx) {
+        window.previewImg = function(event, idx) {
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    document.getElementById('preview'+idx).innerHTML = `<img src="${e.target.result}">`;
+                    const thumb = document.getElementById('thumb'+idx);
+                    thumb.style.display = 'block';
+                    thumb.src = e.target.result;
                 }
                 reader.readAsDataURL(file);
             }
-        }
+        };
 
-        function printPDF() {
-            window.print(); // This allows browser printing; use a PDF printer or Save as PDF option in dialog.
-        }
+        window.syncPrintLabels = function(idx) {
+            document.getElementById('printScene'+idx).textContent = document.getElementById('scene'+idx).value;
+            document.getElementById('printShot'+idx).textContent = document.getElementById('shot'+idx).value;
+            document.getElementById('printDesc'+idx).textContent = document.getElementById('desc'+idx).value;
+        };
 
-        // Add initial cells for convenience
-        for (let i = 0; i < 3; i++) addCell();
+        window.syncPrintHeader = function() {
+            document.getElementById('printTitle').textContent = document.getElementById('titleField').value;
+            document.getElementById('printWriter').textContent = document.getElementById('writerField').value;
+        };
+
+        // Add five panels by default
+        for(let i=0;i<5;i++) addPanel();
     </script>
 </body>
 </html>
