@@ -1,524 +1,276 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FILM FOLKS SCREENPLAY WRITER</title>
-    <style>
-        :root {
-            --bg-color: #fff;
-            --text-color: #000;
-            --border-color: #ccc;
-            --preview-bg: #f0f0f0;
-            --font-size: 12pt; /* Default font size for zoom */
-        }
-        body.dark-mode {
-            --bg-color: #1e1e1e;
-            --text-color: #ddd;
-            --border-color: #444;
-            --preview-bg: #2a2a2a;
-        }
-        body { 
-            font-family: 'Courier New', monospace; 
-            display: flex; 
-            height: 100vh; 
-            margin: 0; 
-            background: var(--bg-color); 
-            color: var(--text-color); 
-        }
-        #editor { flex: 1.2; padding: 20px; border-right: 1px solid var(--border-color); } /* Increased horizontal space */
-        #format-buttons { 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: center; 
-            align-items: center; 
-            width: 50px; 
-            padding: 10px; 
-            border-right: 1px solid var(--border-color); 
-        }
-        #format-buttons button { 
-            margin: 5px 0; 
-            padding: 3px; 
-            width: 25px; 
-            height: 25px; 
-            font-size: 12pt; 
-            font-weight: bold; 
-            background: var(--bg-color); 
-            color: var(--text-color); 
-            border: 1px solid var(--border-color); 
-            cursor: pointer; 
-        }
-        #preview { flex: 1; padding: 20px; overflow-y: auto; background: var(--preview-bg); }
-        textarea { width: 100%; height: 80%; font-size: var(--font-size); border: 1px solid var(--border-color); resize: none; background: var(--bg-color); color: var(--text-color); } /* Increased vertical size, with zoom variable */
-        input { width: calc(100% - 200px); margin-bottom: 10px; padding: 5px; font-size: 12pt; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); display: inline-block; } /* Adjusted width to leave space on right */
-        #title-form button, #title-display button { margin-left: 5px; padding: 5px 10px; vertical-align: top; } /* Buttons next to fields */
-        button { margin-top: 10px; padding: 3px 6px; margin-right: 5px; font-size: 10pt; } /* Reduced button size */
-        .buttons-row { display: flex; align-items: center; flex-wrap: nowrap; } /* Keep buttons in one line */
-        .scene-heading { font-weight: bold; text-transform: uppercase; margin: 1em 0; }
-        .action { margin: 1em 0; }
-        .character { text-transform: uppercase; margin: 2em 0 0 0; text-align: left; width: 60%; margin-left: 20%; }
-        .dialogue { margin: 0 0 0 10%; width: 50%; }
-        .parenthetical { margin: 0 0 0 15%; width: 45%; font-style: italic; }
-        .transition { text-transform: uppercase; text-align: right; margin: 1em 0; }
-        .note { font-style: italic; color: #666; margin: 1em 0; } /* Style for notes in preview */
-        #output { max-width: 37em; margin: 0 auto; font-size: 12pt; line-height: 1.2; }
-        #dark-mode-toggle, #fullscreen-toggle { cursor: pointer; font-size: 16px; background: none; border: none; margin-left: 5px; }
-        #exit-fullscreen { display: none; position: absolute; top: 10px; right: 10px; padding: 5px 10px; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); cursor: pointer; }
-        body.fullscreen-mode #editor { flex: auto; width: 70%; margin: 0 auto; padding: 10px; } /* Reduced horizontal size, centered */
-        body.fullscreen-mode #preview { display: none; }
-        body.fullscreen-mode #format-buttons { position: absolute; top: 50%; right: 10px; transform: translateY(-50%); flex-direction: column; width: auto; padding: 0; border: none; background: transparent; } /* Vertical on right side */
-        body.fullscreen-mode #format-buttons button { margin: 3px 0; }
-        body.fullscreen-mode #exit-fullscreen { display: block; position: absolute; top: 10px; right: 10px; } /* Next to dark mode */
-        body.fullscreen-mode textarea { height: calc(95% - 40px); margin-top: 40px; } /* Adjust height and add margin for top bar */
-        body.fullscreen-mode #title-form { display: none; }
-        body.fullscreen-mode #title-display { display: block; position: absolute; top: 0; left: 0; width: 100%; height: 40px; background: var(--bg-color); border-bottom: 1px solid var(--border-color); text-align: left; padding: 10px; box-sizing: border-box; } /* Top bar for title/writer and buttons */
-        body.fullscreen-mode #title-display .controls { display: none; } /* Hide zoom and fullscreen in fullscreen */
-        body.fullscreen-mode #title-edit { display: none; } /* Hide Edit Title in fullscreen */
-        body.fullscreen-mode .buttons-row { display: none; }
-        body.fullscreen-mode #auto-save-toggle { display: none; }
-        body.fullscreen-mode #dark-mode-toggle-fs { display: block; position: absolute; top: 10px; right: 50px; font-size: 16px; background: none; border: none; cursor: pointer; } /* Dark mode next to exit in fullscreen */
-        #dark-mode-toggle-fs { display: none; }
-        #title-display { margin-top: 10px; font-size: 12pt; }
-        #title-edit { margin-left: 5px; padding: 5px 10px; vertical-align: top; } /* Edit button close to display text, within editor frame */
-        .title-line { display: flex; align-items: center; margin-bottom: 10px; } /* Line for inputs and buttons */
-        .controls { display: inline-flex; align-items: center; } /* Controls group */
-        .controls button { margin-left: 5px; padding: 5px; font-size: 16px; background: none; border: none; cursor: pointer; }
-        #display-title, #display-writer { margin: 0; display: inline-block; }
-        #title-display .title-line { justify-content: space-between; } /* Align title/writer and controls */
-        #title-display .edit-controls { display: flex; align-items: center; }
-    </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>Screenplay Writer</title>
+  <style>
+    :root {
+      --bg-color: #fff;
+      --text-color: #000;
+      --border-color: #ccc;
+      --preview-bg: #f0f0f0;
+      --font-size: 12pt;
+    }
+    body.dark-mode {
+      --bg-color: #1e1e1e;
+      --text-color: #eee;
+      --border-color: #444;
+      --preview-bg: #2a2a2a;
+    }
+    body {
+      font-family: 'Courier New', monospace;
+      display: flex;
+      height: 100vh;
+      margin: 0;
+      background: var(--bg-color);
+      color: var(--text-color);
+    }
+    #editor { flex: 1.2; padding: 20px; border-right: 1px solid var(--border-color);}
+    #preview { flex: 1; padding: 20px; overflow-y: auto; background: var(--preview-bg);}
+    textarea {
+      width: 100%;
+      height: 60vh;
+      font-size: var(--font-size);
+      border: 1px solid var(--border-color);
+      resize: none;
+      background: var(--bg-color);
+      color: var(--text-color);
+      margin-bottom: 10px;
+      transition: font-size 0.2s;
+    }
+    .desktop-toolbar, .buttons-row, #format-buttons { display: flex; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+    .desktop-toolbar input { width: 30%; min-width: 100px; margin-right: 10px; }
+    .desktop-toolbar button, .buttons-row button { margin: 2px; padding: 4px 10px; }
+
+    #format-buttons { flex-direction: column; border-right: 1px solid var(--border-color); height: 100%; }
+    #format-buttons button { width: 32px; height: 32px; margin-bottom: 6px; font-size: 16px; }
+
+    /* -- Responsive / MOBILE -- */
+    @media (max-width: 800px) {
+      body { flex-direction: column; }
+      #editor, #preview { border-right: none; border-bottom: 1px solid var(--border-color);}
+      #editor { padding: 10px; }
+      #format-buttons {
+        display: none;
+      }
+      /* Hide desktop toolbar/buttons in mobile-fullscreen */
+      #editor.mobile-fullscreen .desktop-toolbar, 
+      #editor.mobile-fullscreen .buttons-row {
+        display: none !important;
+      }
+      /* MOBILE FULLSCREEN MODE: Editor expands, top bar appears */
+      #editor.mobile-fullscreen {
+        position:fixed; z-index:9999;
+        left:0; top:0; width:100vw; height:100vh;
+        background: var(--bg-color);
+        border: none;
+        padding: 0;
+      }
+      #editor.mobile-fullscreen textarea {
+        height: calc(100vh - 56px); /* below the mobile bar */
+        margin-bottom: 0;
+      }
+      #mobile-bar {
+        display: flex !important;
+      }
+    }
+    /* Top mobile bar for controls - hidden by default */
+    #mobile-bar {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      width: 100vw;
+      background: var(--bg-color);
+      border-bottom: 1.5px solid var(--border-color);
+      z-index: 10000;
+      justify-content: space-around;
+      align-items: center;
+      padding: 8px 0;
+    }
+    #mobile-bar .mobile-btn {
+      font-size: 22px;
+      padding: 8px 14px;
+      background: var(--bg-color);
+      border: 2px solid var(--border-color);
+      margin: 0 4px;
+      border-radius: 8px;
+    }
+  </style>
 </head>
 <body>
-    <div id="editor">
-        <div id="title-form">
-            <div class="title-line">
-                <input id="title" placeholder="Screenplay Title">
-            </div>
-            <div class="title-line">
-                <input id="writer" placeholder="Writer Name">
-            </div>
-            <div class="title-line">
-                <button onclick="setTitle()">Save Title</button>
-                <div class="controls">
-                    <button id="dark-mode-toggle" onclick="toggleDarkMode()">☀️</button>
-                    <button onclick="zoomIn()">+</button>
-                    <button onclick="zoomOut()">-</button>
-                    <button onclick="resetZoom()">R</button>
-                    <button id="fullscreen-toggle" onclick="toggleFullscreen()">⛶</button>
-                </div>
-            </div>
-        </div>
-        <div id="title-display" style="display: none;">
-            <div class="title-line">
-                <div>
-                    <p id="display-title"></p>
-                    <p id="display-writer"></p>
-                </div>
-                <div class="edit-controls">
-                    <button id="title-edit" onclick="editTitle()">Edit Title</button>
-                    <div class="controls">
-                        <button id="dark-mode-toggle2" onclick="toggleDarkMode()">☀️</button>
-                        <button onclick="zoomIn()">+</button>
-                        <button onclick="zoomOut()">-</button>
-                        <button onclick="resetZoom()">R</button>
-                        <button id="fullscreen-toggle2" onclick="toggleFullscreen()">⛶</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <textarea id="input" placeholder="Type Screenplay here... e.g., INT. HOUSE - DAY
+  <!-- MOBILE TOP BAR (hidden by default until fullscreen mobile active) -->
+  <div id="mobile-bar">
+    <button class="mobile-btn" onclick="toggleDarkMode()">☀️</button>
+    <button class="mobile-btn" onclick="zoomIn()">+</button>
+    <button class="mobile-btn" onclick="zoomOut()">-</button>
+    <button class="mobile-btn" onclick="resetZoom()">R</button>
+    <button class="mobile-btn" onclick="exitMobileFullscreen()">□</button>
+  </div>
+
+  <div id="editor">
+    <!-- Desktop toolbar (hidden in mobile fullscreen) -->
+    <div class="desktop-toolbar">
+      <input id="title" placeholder="Screenplay Title">
+      <input id="writer" placeholder="Writer Name">
+      <button onclick="toggleDarkMode()">☀️</button>
+      <button onclick="zoomIn()">+</button>
+      <button onclick="zoomOut()">-</button>
+      <button onclick="resetZoom()">R</button>
+      <button onclick="enterMobileFullscreen()">⛶</button>
+    </div>
+
+    <textarea id="input" placeholder="Type Screenplay here... e.g., INT. HOUSE - DAY
 
 SANTHOSH
 Hello!"></textarea>
-        <div class="buttons-row">
-            <button onclick="saveFile()">Save as .fountain</button>
-            <button onclick="printPDF()">Print PDF</button>
-            <button onclick="previewFullscreen()">Preview Fullscreen</button>
-            <button id="auto-save-toggle" onclick="toggleAutoSave()">Auto Save: Off</button>
-        </div>
+
+    <div class="buttons-row">
+      <button onclick="saveFile()">Save as .fountain</button>
+      <button onclick="printPDF()">Print PDF</button>
     </div>
-    <div id="format-buttons">
-        <button onclick="applyFormat('S')">S</button>
-        <button onclick="applyFormat('A')">A</button>
-        <button onclick="applyFormat('C')">C</button>
-        <button onclick="applyFormat('D')">D</button>
-        <button onclick="applyFormat('P')">P</button>
-        <button onclick="applyFormat('T')">T</button>
-        <button onclick="applyFormat('G')">G</button>
-        <button onclick="applyFormat('N')">N</button>
-    </div>
-    <div id="preview">
-        <h2>Screenplay Preview</h2>
-        <div id="output"></div>
-    </div>
-    <button id="dark-mode-toggle-fs" onclick="toggleDarkMode()">☀️</button>
-    <button id="exit-fullscreen" onclick="toggleFullscreen()">□</button>
-    <script>
-        // Improved Fountain Parser with duplicate character merging, multi-line transition handling, and note handling
-        const fountainParser = (function() {
-            const rules = {
-                scene_heading: /^((?:i(?:nt)?|e(?:xt)?|est|int\/ext|I\/E)[. ].+)|^(?:\.(?!.+ ))(.+)/i,
-                action: /^[^\n]+$/,
-                character: /^(?!\@)([A-Z0-9]{2,})(?:[\s^]+)?$/,
-                dialogue: /^[^\n]+$/,
-                parenthetical: /^\((.+)\)$/,
-                transition: /^((?:fade |cut |smash cut |dissolve )?(?:in|out|to)| iris out).?$/i,
-                note: /^Notes:-/i
-            };
-            function parse(text) {
-                const lines = text.split(/\n/);
-                let html = '';
-                let state = 'action';
-                let potentialTransition = '';
-                let lastCharacter = '';
-                lines.forEach(line => {
-                    line = line.trim();
-                    if (!line) return;
-                    // Handle notes: Render in italics for preview
-                    if (rules.note.test(line)) {
-                        html += `<p class="note">${line}</p>`;
-                        return; // Notes are not part of screenplay flow
-                    }
-                    // Handle duplicate characters
-                    if (rules.character.test(line)) {
-                        if (line === lastCharacter) {
-                            return; // Skip duplicate
-                        }
-                        html += `<p class="character">${line}</p>`;
-                        lastCharacter = line;
-                        state = 'dialogue';
-                        return;
-                    }
-                    lastCharacter = ''; // Reset after non-character line
-                    // Detect and combine potential multi-line transitions
-                    if (/^[A-Z\s:.]+$/.test(line) && state === 'action') {
-                        potentialTransition += (potentialTransition ? ' ' : '') + line;
-                        if (rules.transition.test(potentialTransition)) {
-                            html += `<p class="transition">${potentialTransition}</p>`;
-                            potentialTransition = '';
-                            state = 'action';
-                            return;
-                        }
-                    } else {
-                        if (potentialTransition) {
-                            html += `<p class="action">${potentialTransition}</p>`;
-                            potentialTransition = '';
-                        }
-                    }
-                    if (rules.scene_heading.test(line)) {
-                        html += `<p class="scene-heading">${line}</p>`;
-                        state = 'action';
-                    } else if (rules.transition.test(line)) {
-                        html += `<p class="transition">${line}</p>`;
-                        state = 'action';
-                    } else if (state === 'dialogue' && rules.parenthetical.test(line)) {
-                        html += `<p class="parenthetical">${line}</p>`;
-                    } else if (state === 'dialogue') {
-                        html += `<p class="dialogue">${line}</p>`;
-                    } else {
-                        html += `<p class="action">${line}</p>`;
-                        state = 'action';
-                    }
-                });
-                if (potentialTransition) {
-                    html += `<p class="action">${potentialTransition}</p>`;
-                }
-                return { html: { script: html } };
-            }
-            return { parse: parse };
-        })();
-        const input = document.getElementById('input');
-        const output = document.getElementById('output');
-        const toggleButton = document.getElementById('dark-mode-toggle');
-        const toggleButton2 = document.getElementById('dark-mode-toggle2'); // For title-display
-        const toggleButtonFS = document.getElementById('dark-mode-toggle-fs'); // For fullscreen
-        const autoSaveButton = document.getElementById('auto-save-toggle');
-        const fullscreenToggle = document.getElementById('fullscreen-toggle');
-        const fullscreenToggle2 = document.getElementById('fullscreen-toggle2'); // For title-display
-        const exitFullscreen = document.getElementById('exit-fullscreen');
-        const titleInput = document.getElementById('title');
-        const writerInput = document.getElementById('writer');
-        const titleForm = document.getElementById('title-form');
-        const titleDisplay = document.getElementById('title-display');
-        const displayTitle = document.getElementById('display-title');
-        const displayWriter = document.getElementById('display-writer');
-        let autoSaveInterval = null;
-        let isAutoSaveOn = false;
-        let isFullscreen = false;
-        let currentFontSize = 12; // Initial font size in pt
-        function updatePreview() {
-            if (input.value.trim() === '') {
-                output.innerHTML = '<p>After you type on the left, the preview will appear here.</p>';
-                return;
-            }
-            const result = fountainParser.parse(input.value);
-            if (result && result.html && result.html.script) {
-                output.innerHTML = result.html.script;
-            } else {
-                output.innerHTML = '<p>Error parsing. Check syntax.</p>';
-            }
+  </div>
+  <!-- Format buttons only on desktop -->
+  <div id="format-buttons">
+    <button onclick="applyFormat('S')">S</button>
+    <button onclick="applyFormat('A')">A</button>
+    <button onclick="applyFormat('C')">C</button>
+    <button onclick="applyFormat('D')">D</button>
+    <button onclick="applyFormat('P')">P</button>
+    <button onclick="applyFormat('T')">T</button>
+    <button onclick="applyFormat('G')">G</button>
+    <button onclick="applyFormat('N')">N</button>
+  </div>
+  <div id="preview">
+    <h2>Screenplay Preview</h2>
+    <div id="output"></div>
+  </div>
+  <script>
+    // --- MOBILE AND FULLSCREEN LOGIC ---
+    const editor = document.getElementById('editor');
+    const textarea = document.getElementById('input');
+    const mobileBar = document.getElementById('mobile-bar');
+    let currentFontSize = 12;
+
+    function isMobile() {
+      return /Mobi|Android|iPhone|iPad|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 800;
+    }
+    function enterMobileFullscreen() {
+      if (isMobile()) {
+        editor.classList.add('mobile-fullscreen');
+        mobileBar.style.display = 'flex';
+        // Focus textarea (bring up keyboard)
+        setTimeout(() => { textarea.focus(); }, 200);
+      }
+    }
+    function exitMobileFullscreen() {
+      editor.classList.remove('mobile-fullscreen');
+      mobileBar.style.display = 'none';
+    }
+
+    // --- DARK MODE ---
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('darkMode', document.body.classList.contains('dark-mode') ? "enabled" : "disabled");
+    }
+    if (localStorage.getItem('darkMode') === 'enabled') toggleDarkMode();
+
+    // --- ZOOM ---
+    function zoomIn() {
+      currentFontSize = Math.min(24, currentFontSize + 2);
+      textarea.style.fontSize = currentFontSize + 'pt';
+    }
+    function zoomOut() {
+      currentFontSize = Math.max(8, currentFontSize - 2);
+      textarea.style.fontSize = currentFontSize + 'pt';
+    }
+    function resetZoom() {
+      currentFontSize = 12;
+      textarea.style.fontSize = currentFontSize + 'pt';
+    }
+
+    // --- SAVE AND PRINT ---
+    function saveFile() {
+      const text = textarea.value;
+      const blob = new Blob([text], {type: 'text/plain'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'screenplay.fountain';
+      a.click();
+    }
+    function printPDF() { alert('Print PDF not implemented here, see desktop version.'); }
+
+    // --- FORMAT BUTTONS (not shown in mobile) ---
+    function applyFormat(type) {
+      // This is a placeholder - adapt as needed
+      let val = textarea.value;
+      switch(type){
+        case 'S': // Scene Heading
+          textarea.value = val + '\nINT. ';
+          break;
+        case 'A': // Action
+          textarea.value = val + '\nAction line here';
+          break;
+        case 'C': // Character
+          textarea.value = val + '\nCHARACTER';
+          break;
+        case 'D': // Dialogue
+          textarea.value = val + '\n(dialogue)';
+          break;
+        case 'P': // Parenthetical
+          textarea.value = val + '\n(parenthetical)';
+          break;
+        case 'T': // Transition
+          textarea.value = val + '\nCUT TO:';
+          break;
+        case 'G':
+          textarea.value = val + '\nGeneral text';
+          break;
+        case 'N':
+          textarea.value = val + '\nNotes:- ';
+          break;
+      }
+      textarea.focus();
+    }
+
+    // --- SMART CAPITALIZATION ---
+    textarea.addEventListener('input', function(e) {
+      let lines = textarea.value.split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        // If line matches scene heading pattern, upper case it
+        if (/^\s*(int\.|ext\.|est\.|int\/ext\.|i\/e\.)/.test(lines[i])) {
+          lines[i] = lines[i].toUpperCase();
         }
-        input.addEventListener('input', updatePreview);
-        updatePreview(); // Initial render
-        // Function to apply formatting to the current/selected line
-        function applyFormat(type) {
-            const start = input.selectionStart;
-            const end = input.selectionEnd;
-            const text = input.value;
-            const lines = text.split('\n');
-            // Find the line index of the cursor/selection
-            let charCount = 0;
-            let lineIndex = -1;
-            for (let i = 0; i < lines.length; i++) {
-                charCount += lines[i].length + 1; // +1 for newline
-                if (start < charCount) {
-                    lineIndex = i;
-                    break;
-                }
-            }
-            if (lineIndex === -1) return; // No line found
-            let line = lines[lineIndex].trim();
-            // Apply format based on type
-            switch (type) {
-                case 'S': // Scene Heading: Uppercase and ensure format
-                    line = line.toUpperCase();
-                    if (!/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/i.test(line)) {
-                        line = 'INT. ' + line; // Default to INT. if not specified
-                    }
-                    break;
-                case 'A': // Action Description: Treat as general action (no change, default margin)
-                case 'G': // General Text: Same as action, ensure left margin (no indent)
-                    // No specific change; parser handles as action with left margin
-                    break;
-                case 'C': // Character: Uppercase
-                    line = line.toUpperCase();
-                    break;
-                case 'D': // Dialogue: No specific change, but ensure it's after character (parser handles)
-                    break;
-                case 'P': // Parenthetical: Wrap in parentheses if not already
-                    if (!/^\((.+\))$/.test(line)) {
-                        line = '(' + line + ')';
-                    }
-                    break;
-                case 'T': // Transition: Uppercase and add colon if missing
-                    line = line.toUpperCase();
-                    if (!line.endsWith(':')) {
-                        line += ':';
-                    }
-                    break;
-                case 'N': // Note: Prefix with "Notes:- " if not already
-                    if (!/^Notes:-/i.test(line)) {
-                        line = 'Notes:- ' + line;
-                    }
-                    break;
-            }
-            // Replace the line, preserving leading/trailing spaces
-            const originalLine = lines[lineIndex];
-            const leadingSpaces = originalLine.match(/^\s*/)[0];
-            const trailingSpaces = originalLine.match(/\s*$/)[0];
-            lines[lineIndex] = leadingSpaces + line + trailingSpaces;
-            // Update textarea value and restore cursor
-            input.value = lines.join('\n');
-            input.selectionStart = input.selectionEnd = start; // Reset cursor
-            updatePreview(); // Refresh preview
+        // If previous line was a scene heading, capitalize only first letter here (Simple action assumption)
+        if (
+          i > 0 &&
+          /^\s*(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/.test(lines[i-1].trim()) &&
+          (!/^\s*(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/.test(lines[i].trim()))
+        ) {
+          if (lines[i].length > 0)
+            lines[i] = lines[i].charAt(0).toUpperCase() + lines[i].slice(1).toLowerCase();
         }
-        function saveFile(auto = false) {
-            const blob = new Blob([input.value], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            if (auto) {
-                const now = new Date();
-                const timestamp = now.toISOString().replace(/T/, '_').replace(/:/g, '-').split('.')[0];
-                a.download = `screenplay_${timestamp}.fountain`;
-            } else {
-                a.download = 'screenplay.fountain';
-            }
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-        function toggleAutoSave() {
-            isAutoSaveOn = !isAutoSaveOn;
-            autoSaveButton.textContent = `Auto Save: ${isAutoSaveOn ? 'On' : 'Off'}`;
-            if (isAutoSaveOn) {
-                autoSaveInterval = setInterval(() => saveFile(true), 120000); // Every 2 minutes
-            } else {
-                clearInterval(autoSaveInterval);
-            }
-        }
-        function toggleFullscreen() {
-            isFullscreen = !isFullscreen;
-            document.body.classList.toggle('fullscreen-mode', isFullscreen);
-            if (!isFullscreen) {
-                fullscreenToggle.style.display = 'inline-block'; // Show fullscreen toggle in normal mode
-                fullscreenToggle2.style.display = 'inline-block';
-            }
-        }
-        function setTitle() {
-            const title = titleInput.value.trim();
-            const writer = writerInput.value.trim();
-            if (title || writer) {
-                displayTitle.textContent = title ? `Title: ${title}` : '';
-                displayWriter.textContent = writer ? `Writer: ${writer}` : '';
-                titleForm.style.display = 'none';
-                titleDisplay.style.display = 'block';
-            }
-        }
-        function editTitle() {
-            titleForm.style.display = 'block';
-            titleDisplay.style.display = 'none';
-        }
-        // Zoom function (increases font size by 2pt each time, up to a max)
-        function zoomIn() {
-            currentFontSize += 2;
-            if (currentFontSize > 24) currentFontSize = 24; // Max size
-            document.documentElement.style.setProperty('--font-size', `${currentFontSize}pt`);
-        }
-        function zoomOut() {
-            currentFontSize -= 2;
-            if (currentFontSize < 8) currentFontSize = 8; // Min size
-            document.documentElement.style.setProperty('--font-size', `${currentFontSize}pt`);
-        }
-        function resetZoom() {
-            currentFontSize = 12;
-            document.documentElement.style.setProperty('--font-size', `${currentFontSize}pt`);
-        }
-        // New function for full-screen preview of formatted screenplay
-        function previewFullscreen() {
-            const previewElement = document.getElementById('preview');
-            if (previewElement.requestFullscreen) {
-                previewElement.requestFullscreen();
-            } else if (previewElement.mozRequestFullScreen) { /* Firefox */
-                previewElement.mozRequestFullScreen();
-            } else if (previewElement.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
-                previewElement.webkitRequestFullscreen();
-            } else if (previewElement.msRequestFullscreen) { /* IE/Edge */
-                previewElement.msRequestFullscreen();
-            }
-        }
-        function generatePDF(forPrint = false) {
-            if (!window.jspdf) {
-                alert('jsPDF failed to load. Check your internet or try a different browser.');
-                return;
-            }
-            if (output.innerHTML.trim() === '' || output.innerHTML === '<p>After you type on the left, the preview will appear here.</p>') {
-                alert('No content to process. Add screenplay text first.');
-                return;
-            }
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({ unit: 'pt', format: 'a4', orientation: 'portrait' });
-            doc.setFont('courier', 'normal');
-            doc.setFontSize(12);
-            // Add title page
-            const title = (displayTitle.textContent.replace('Title: ', '') || titleInput.value.trim() || 'UNTITLED SCREENPLAY').toUpperCase();
-            const writer = displayWriter.textContent.replace('Writer: ', '') || writerInput.value.trim() || 'Unknown Writer';
-            doc.setFontSize(24);
-            doc.setFont('courier', 'bold');
-            doc.text(title, 297.5, 421, { align: 'center' }); // Center on A4
-            doc.setFontSize(12);
-            doc.setFont('courier', 'normal');
-            doc.text('Written by', 297.5, 500, { align: 'center' });
-            doc.text(writer, 297.5, 520, { align: 'center' });
-            doc.addPage(); // Start screenplay on next page
-            // Add screenplay content (skip notes)
-            const elements = output.querySelectorAll('p:not(.note)');
-            let y = 72; // Starting Y (1 inch margin)
-            const pageWidth = 595; // A4 width in pt
-            const pageHeight = 842; // A4 height in pt
-            const leftMargin = 108; // 1.5 inch for action
-            const rightMargin = pageWidth - 72; // 1 inch right
-            const lineHeight = 12; // Standard screenplay line height
-            elements.forEach(el => {
-                let text = el.textContent.trim().replace(/\s+/g, ' '); // Clean extra spaces
-                let x = leftMargin;
-                const className = el.className;
-                // Reset font before each element
-                doc.setFont('courier', 'normal');
-                // Apply styles and positioning
-                if (className === 'scene-heading') {
-                    doc.setFont('courier', 'bold');
-                    text = text.toUpperCase(); // Force uppercase to match preview
-                    x = leftMargin;
-                    y += lineHeight; // Extra space above scenes
-                } else if (className === 'character') {
-                    x = leftMargin + 108; // 2.5 inch indent
-                    y += lineHeight; // Space above character
-                } else if (className === 'dialogue') {
-                    x = leftMargin + 72; // 2 inch indent
-                } else if (className === 'parenthetical') {
-                    x = leftMargin + 90; // 2.2 inch indent
-                    doc.setFont('courier', 'italic');
-                } else if (className === 'transition') {
-                    x = rightMargin - doc.getTextWidth(text); // Right-align
-                    y += lineHeight; // Extra space
-                } else {
-                    x = leftMargin;
-                }
-                // Split long lines, but avoid over-splitting short ones
-                const maxWidth = rightMargin - x - 36;
-                const lines = text.length < 20 ? [text] : doc.splitTextToSize(text, maxWidth);
-                lines.forEach(line => {
-                    if (y + lineHeight > pageHeight - 72) {
-                        doc.addPage();
-                        y = 72;
-                    }
-                    doc.text(line, x, y);
-                    y += lineHeight;
-                });
-                // Reset font after element and add spacing
-                doc.setFont('courier', 'normal');
-                y += lineHeight / 2; // Inter-element spacing
-            });
-            if (forPrint) {
-                doc.autoPrint({ variant: 'non-conform' });
-                window.open(doc.output('bloburl'), '_blank');
-            } else {
-                try {
-                    const filename = `${title}.pdf`;
-                    doc.save(filename);
-                } catch (error) {
-                    console.error('PDF save failed:', error);
-                    alert('Save failed. Check console or try another browser.');
-                    const blob = doc.output('blob');
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `${title}.pdf`;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                }
-            }
-        }
-        function printPDF() {
-            generatePDF(true);
-        }
-        // Dark Mode Toggle (handles all buttons)
-        function toggleDarkMode() {
-            document.body.classList.toggle('dark-mode');
-            const isDark = document.body.classList.contains('dark-mode');
-            toggleButton.textContent = isDark ? '☀️' : '🌙';
-            toggleButton2.textContent = isDark ? '☀️' : '🌙';
-            toggleButtonFS.textContent = isDark ? '☀️' : '🌙';
-            localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
-        }
-        // Load saved dark mode preference
-        if (localStorage.getItem('darkMode') === 'enabled') {
-            toggleDarkMode();
-        } else {
-            toggleButton.textContent = '🌙';
-            toggleButton2.textContent = '🌙';
-            toggleButtonFS.textContent = '🌙';
-        }
-        // Debug: Log if parser and jsPDF are ready
-        document.addEventListener('DOMContentLoaded', () => {
-            if (window.jspdf) {
-                console.log('jsPDF loaded successfully.');
-            } else {
-                console.error('jsPDF failed to load. Check CDN.');
-            }
-            console.log('Fountain parser loaded and ready.');
-        });
-    </script>
+      }
+      let pos = textarea.selectionStart;
+      textarea.value = lines.join('\n');
+      textarea.selectionStart = textarea.selectionEnd = pos;
+    });
+
+    // --- OPTIONAL: Dismiss mobile bar if resized to desktop
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 800) exitMobileFullscreen();
+    });
+
+    // --- Hide mobile bar by default if not on mobile ---
+    if (!isMobile()) mobileBar.style.display = 'none';
+
+    // --- Basic live preview (OPTIONAL) ---
+    const output = document.getElementById('output');
+    textarea.addEventListener('input', updatePreview);
+    function updatePreview() {
+      output.textContent = textarea.value;
+    }
+    updatePreview();
+  </script>
 </body>
 </html>
