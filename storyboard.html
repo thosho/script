@@ -6,60 +6,61 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <style>
 body { font-family: Arial, sans-serif; background: #fafafa; margin: 0; }
-.dark-mode { background: #121212; color: #f0f0f0; }
-.dark-mode .storyboard-container { background: #1e1e1e; }
-.dark-mode input, .dark-mode textarea, .dark-mode select { background: #222; color: #fff; border-color: #555; }
-.dark-mode .storyboard-panel { background: #2a2a2a; }
-.dark-mode button { background: #444 !important; color: #eee !important; }
-.storyboard-container { max-width: 1200px; margin: 20px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 10px #bbb; padding: 16px; }
+.dark-mode { background: #121212 !important; color: #fff !important; }
+.dark-mode .storyboard-container { background: #181818 !important; color: #fff !important; }
+.dark-mode input, .dark-mode textarea, .dark-mode select { background: #222 !important; color: #fff !important; border-color: #555 !important; }
+.dark-mode .storyboard-panel { background: #222 !important; color: #fff !important; }
+.dark-mode .preview-shot { background: #222 !important; color: #fff !important; }
+.dark-mode .preview-header, .dark-mode .preview-shot * { color: #fff !important; }
+.storyboard-container { max-width: 1200px; margin: 20px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 10px #bbb; padding: 16px; color: #111; }
 .top-section { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin-bottom: 20px; }
 .top-fields { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
 .top-fields input { font-size: 16px; padding: 6px 9px; border: 1px solid #bbb; border-radius: 4px; width: 200px; }
 .saved-header { display: none; text-align: center; }
 .saved-title { font-size: 18px; font-weight: bold; letter-spacing: 1px; }
 .saved-director,.saved-sequence { font-size: 13px; margin: 0 8px; }
-button { border: none; border-radius: 4px; padding: 8px 14px; cursor: pointer; }
-.save-btn { background: #28a745; color: #fff; }
-.edit-btn { background: #ffc107; color: #212529; display: none; }
-.add-shot-main { background: #2274a5; color: white; }
-.add-shot-mobile { display: none; background: #28a745; color: white; margin-top: 8px; }
-#previewModeBtn { background: #444fc7; color: #fff; margin-left: 10px; }
-#darkModeBtn { background: #333; color: #fff; margin-top: 10px; }
-#exitPreviewBtn { background: #c72b2b; }
-#prevBtn,#nextBtn { background: #174668; color: white; }
-#prevBtn:disabled,#nextBtn:disabled { opacity: 0.5; cursor: not-allowed; }
-.storyboard-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; justify-content: flex-start; }
-.storyboard-panel { background: #f4f4f4; border-radius: 8px; padding: 12px; display: flex; flex-direction: column; align-items: center; box-sizing: border-box; break-inside: avoid; page-break-inside: avoid; }
+button { border: none; border-radius: 4px; padding: 8px 14px; cursor: pointer; font-size: 18px;}
+.save-btn { background: #28a745; color: #fff; font-size:18px;}
+.edit-btn { background: #ffc107; color: #212529;}
+.edit-btn:before { content:'E'; font-weight:bold;}
+#pdfBtn { background: #555; color: #fff; margin-left:8px;}
+#pdfBtn:before { content:'S';}
+#previewModeBtn { background: #037bf0; color: #fff; font-size:18px;}
+#previewModeBtn:before { content:'P';}
+#darkModeBtn { background: #333; color: #fff; margin-left:10px;}
+#darkModeBtn:before { content:'🌙';}
+#exitPreviewBtn { background: #c72b2b; color: white; margin-left:6px;}
+.add-shot-main { background: #2274a5; color: white; margin-left:6px; font-size: 24px; padding: 4px 10px; height: fit-content; align-self: flex-start; }
+.storyboard-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; justify-content: flex-start; align-items: flex-start; }
+.storyboard-panel { background: #f4f4f4; border-radius: 8px; padding: 12px; display: flex; flex-direction: column; align-items: center; box-sizing: border-box; break-inside: avoid; page-break-inside: avoid; width: 220px; }
 .storyboard-thumbnail { width: 190px; height: 120px; background: #ddd; border-radius: 4px; object-fit: cover; margin-top: 6px; }
 .panel-label { font-weight: bold; width: 100%; margin: 5px 0 3px; }
 input,textarea,select { width: 100%; font-size: 15px; padding: 4px 7px; border-radius: 3px; border: 1px solid #ccc; margin-bottom: 8px; }
 textarea { resize: vertical; }
-#previewArea { display: none; text-align: center; max-width: 1000px; margin: 20px auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px #bbb; }
-.preview-header { text-align: center; margin-bottom: 20px; font-size: 18px; font-weight: bold; }
+#previewArea { display: none; text-align: center; max-width: 1000px; margin: 20px auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px #bbb; color: #222;}
+.preview-header { text-align: center; margin-bottom: 20px; font-size: 20px; font-weight: bold; }
 .preview-shots { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
-.preview-shot { width: 45%; min-width: 300px; border: 1px solid #ddd; border-radius: 8px; padding: 15px; box-sizing: border-box; text-align: center; font-family: 'Courier New', monospace; font-size: 12pt; }
-.preview-shot img { max-width: 100%; height: auto; border-radius: 4px; display: block; margin: 0 auto; }
+.preview-shot { width: 45%; min-width: 300px; border: 1px solid #ddd; border-radius: 8px; padding: 15px; box-sizing: border-box; text-align: center; font-family: 'Courier New', monospace; font-size: 12pt; color: #222;}
+.preview-shot img { max-width: 100%; height: auto; border-radius: 4px; display: block; margin: 0 auto; background:#222;}
 .preview-shot .preview-text { font-weight: bold; margin: 10px 0 6px; }
 .preview-shot .preview-desc { margin-top: 10px; white-space: pre-wrap; }
-#previewControls { margin-top: 20px; text-align: center; }
-#previewPrintBtn { background: #2274a5; color: white; margin-right: 10px; padding: 8px 16px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; }
+#previewControls { margin-top: 24px; text-align: center; }
+#previewPrintBtn { background: #2274a5; color: white; margin-right: 10px; padding: 8px 16px; border-radius: 6px; border: none; font-size:18px;}
+#previewPrintBtn:before { content:'S';}
 #previewPrintBtn:hover { background-color: #174668; }
-@media (max-width: 768px) { .preview-shot { width: 100%; } }
+@media (max-width: 768px) { .storyboard-panel { width: 95%; } .storyboard-thumbnail { width: 100%; height: auto; } .add-shot-main { display: block; margin: 10px auto; } }
 @media print {
-  @page { margin: 0.5cm; }
-  button, input, textarea, select, .panel-label, .add-shot-main, .add-shot-mobile, #previewModeBtn, #previewArea { display: none !important; }
-  .saved-header { display: block !important; text-align: center; margin-bottom: 10px; }
-  .storyboard-row { flex-direction: row !important; flex-wrap: wrap !important; gap: 12px !important; justify-content: center !important; }
-  .storyboard-panel { width: 180px !important; padding: 8px !important; display: flex; flex-direction: column; align-items: center; }
-  .storyboard-thumbnail { width: 160px !important; height: 100px !important; display: block !important; object-fit: cover; margin: 0 auto; }
-  .print-shotname { display: block !important; font-size: 14px; font-weight: bold; width: 160px; text-align: center; margin-bottom: 5px; }
-  .print-select { display: block !important; font-size: 12px; width: 160px; text-align: center; font-style: italic; margin-top: 4px; color: #333; }
-  .print-description { display: block !important; font-size: 13px; width: 160px; text-align: center; margin-top: 8px; }
+  body { background: #fff !important; color: #000 !important;}
+  #previewArea { background:#fff !important; color:#000 !important;}
+  .preview-header, .preview-shot { color:#000 !important;}
+  button, input, textarea, select, .panel-label, .add-shot-main, .add-shot-mobile, #previewModeBtn, #exitPreviewBtn, #darkModeBtn, #pdfBtn, #bottomControls, #mainStoryboard { display: none !important; }
+  .preview-header {display:block !important; font-size:22px !important; color:#000 !important;}
+  .preview-shot {font-size:12pt !important; color:#000 !important; width: 180px !important; min-width:120px !important; padding:5px !important;}
+  .preview-shot img {max-width:85px !important; height:50px !important;}
 }
 </style>
 </head>
 <body>
-
 <div class="storyboard-container" id="mainStoryboard">
   <div class="top-section">
     <div class="top-fields" id="editFields">
@@ -72,21 +73,22 @@ textarea { resize: vertical; }
       <div class="saved-title" id="savedTitle"></div>
       <span class="saved-director" id="savedDirector"></span>
       <span class="saved-sequence" id="savedSequence"></span>
-      <button class="edit-btn" onclick="editHeader()">Edit</button>
     </div>
   </div>
   <div id="storyboardRows"></div>
-  <button class="add-shot-main" onclick="addPanel()">Add Shot</button>
-  <button onclick="window.print()">Print as PDF</button>
-  <button id="previewModeBtn" onclick="enterPreview()">Preview</button>
-  <button id="darkModeBtn" onclick="toggleDarkMode()">Toggle Dark Mode</button>
+  <div id="bottomControls">
+    <button id="previewModeBtn" onclick="enterPreview()"></button>
+    <button id="pdfBtn"></button>
+    <button id="darkModeBtn" onclick="toggleDarkMode()"></button>
+    <button class="edit-btn" id="editBtn" onclick="editHeader()"></button>
+  </div>
 </div>
 
 <div id="previewArea">
   <div class="preview-header" id="previewHeader"></div>
   <div id="previewShotsContainer" class="preview-shots"></div>
   <div id="previewControls" style="margin-top: 15px; text-align: center;">
-    <button id="previewPrintBtn">Print</button>
+    <button id="previewPrintBtn"></button>
     <button id="exitPreviewBtn">Exit Preview</button>
   </div>
 </div>
@@ -94,6 +96,13 @@ textarea { resize: vertical; }
 <script>
 let panels = [], panelId = 0;
 let isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+let focusedPanelId = null;
+
+// Create single + button
+const addBtn = document.createElement('button');
+addBtn.className = 'add-shot-main';
+addBtn.textContent = '+';
+addBtn.onclick = addPanel;
 
 function renderStoryboard() {
   const rows = document.getElementById("storyboardRows");
@@ -105,21 +114,52 @@ function renderStoryboard() {
       wrap.appendChild(panel);
       const btn = document.createElement("button");
       btn.className = "add-shot-mobile";
-      btn.textContent = "Add Next Shot";
+      btn.textContent = "+";
       btn.onclick = addPanel;
       wrap.appendChild(btn);
       rows.appendChild(wrap);
     });
   } else {
-    for (let i = 0; i < panels.length; i += 5) {
-      const row = document.createElement("div");
-      row.className = "storyboard-row";
-      for (let j = i; j < i + 5 && j < panels.length; j++) {
-        row.appendChild(panels[j]);
+    let row = document.createElement("div");
+    row.className = "storyboard-row";
+    panels.forEach((panel, idx) => {
+      row.appendChild(panel);
+      // Add focus listeners to inputs in panel
+      const inputs = panel.querySelectorAll('input, textarea, select');
+      inputs.forEach((input) => {
+        input.addEventListener('focus', () => {
+          focusedPanelId = idx;
+          moveAddBtn(panel);
+        });
+      });
+      if (row.children.length === 5) {
+        rows.appendChild(row);
+        row = document.createElement("div");
+        row.className = "storyboard-row";
       }
+    });
+    if (row.children.length > 0) {
       rows.appendChild(row);
     }
+    // Append + button to last row or new row if empty
+    if (panels.length === 0) {
+      row = document.createElement("div");
+      row.className = "storyboard-row";
+      row.appendChild(addBtn);
+      rows.appendChild(row);
+    } else {
+      const lastRow = rows.lastChild;
+      lastRow.appendChild(addBtn);
+    }
   }
+}
+
+// Move + button next to the focused/edited panel
+function moveAddBtn(currentPanel) {
+  const allRows = document.querySelectorAll('.storyboard-row');
+  allRows.forEach(row => row.removeChild(addBtn));
+  const currentRow = currentPanel.parentNode;
+  currentRow.insertBefore(addBtn, currentPanel.nextSibling); // Place right next to current panel
 }
 
 function addPanel() {
@@ -197,6 +237,9 @@ function addPanel() {
   `;
   panels.push(panel);
   renderStoryboard();
+  // After adding, move + to new panel
+  moveAddBtn(panel);
+  panel.querySelector('input').focus(); // Focus new panel
 }
 
 function syncLabels(id) {
@@ -211,12 +254,8 @@ function syncLabels(id) {
   document.getElementById(`printShot${id}`).textContent = scene ? scene + "." : "";
   document.getElementById(`printDesc${id}`).textContent = capitalizeWords(document.getElementById(`desc${id}`).value.trim());
   const selectsSpan = document.getElementById(`printSelects${id}`);
-  if (selections) {
-    selectsSpan.style.display = "block";
-    selectsSpan.textContent = selections;
-  } else {
-    selectsSpan.style.display = "none";
-  }
+  selectsSpan.style.display = "none";
+  selectsSpan.textContent = selections;
 }
 
 function previewImg(e, id) {
@@ -233,49 +272,43 @@ function previewImg(e, id) {
 
 function saveHeader() {
   document.getElementById("savedTitle").textContent = document.getElementById("titleField").value.toUpperCase();
-  document.getElementById("savedDirector").textContent = capitalizeWords(document.getElementById("directorField").value);
+  document.getElementBy, document.getElementById("savedDirector").textContent = capitalizeWords(document.getElementById("directorField").value);
   document.getElementById("savedSequence").textContent = capitalizeWords(document.getElementById("sequenceField").value);
   document.getElementById("editFields").style.display = "none";
   document.getElementById("savedHeader").style.display = "block";
+  document.getElementById('editBtn').style.display = 'inline-block';
 }
 
 function editHeader() {
   document.getElementById("editFields").style.display = "flex";
   document.getElementById("savedHeader").style.display = "none";
+  document.getElementById("titleField").focus();
 }
 
 function capitalizeWords(str) {
   return str.replace(/\w\S*/g, (t) => t.charAt(0).toUpperCase() + t.substr(1).toLowerCase());
 }
 
-// PREVIEW MODE - Show all shots in 2 per row on desktop
+// Preview Mode: Show all shots in 2 per row on desktop; use all white text in dark mode
 function enterPreview() {
   const previewArea = document.getElementById('previewArea');
   const container = document.getElementById('previewShotsContainer');
   container.innerHTML = '';
   panels.forEach((panel, idx) => {
     const shotNum = document.getElementById(`scene${idx + 1}`).value.trim();
-    const shotSize = document.getElementById(`shotSize${idx + 1}`)?.value || '';
-    const camAngle = document.getElementById(`camAngle${idx + 1}`)?.value || '';
-    const framing = document.getElementById(`framing${idx + 1}`)?.value || '';
-    const camMovement = document.getElementById(`camMovement${idx + 1}`)?.value || '';
-    const focusTech = document.getElementById(`focusTech${idx + 1}`)?.value || '';
+    const selects = document.getElementById(`printSelects${idx + 1}`).textContent;
     const desc = document.getElementById(`desc${idx + 1}`).value.trim();
     const imgSrc = document.getElementById(`thumb${idx + 1}`).src || '';
-
-    const infoText = [shotSize, camAngle, framing, camMovement, focusTech].filter(Boolean).join(", ");
-
     const shotDiv = document.createElement('div');
     shotDiv.className = 'preview-shot';
     shotDiv.innerHTML = `
-      <div style="font-family:'Courier New', monospace; font-size:12pt; font-weight:bold; margin-bottom:4px;">${shotNum ? shotNum + '.' : ''}</div>
-      <div style="font-family:'Courier New', monospace; font-size:12pt; margin-bottom:10px; white-space: pre-wrap;">${infoText}</div>
-      ${imgSrc ? `<img src="${imgSrc}" alt="Shot Image" style="max-width:100%; height:auto; display:block; margin:0 auto;">` : ''}
-      <div style="font-family:'Courier New', monospace; font-size:12pt; margin-top:10px; white-space: pre-wrap;">${desc}</div>
+      <div class="preview-text">${shotNum ? shotNum + '.' : ''}</div>
+      <div class="preview-text">${selects}</div>
+      ${imgSrc ? `<img src="${imgSrc}" alt="Shot Image">` : ''}
+      <div class="preview-desc">${desc}</div>
     `;
     container.appendChild(shotDiv);
   });
-
   // Add header to preview
   const previewHeader = document.getElementById('previewHeader');
   previewHeader.innerHTML = `
@@ -283,7 +316,6 @@ function enterPreview() {
     <div>${document.getElementById("savedDirector").textContent}</div>
     <div>${document.getElementById("savedSequence").textContent}</div>
   `;
-
   previewArea.style.display = 'block';
   document.getElementById('mainStoryboard').style.display = 'none';
 }
@@ -299,11 +331,18 @@ document.getElementById('exitPreviewBtn').onclick = exitPreview;
 document.getElementById('previewPrintBtn').onclick = () => {
   const previewArea = document.getElementById('previewArea');
   const originalContents = document.body.innerHTML;
-  const printContents = previewArea.innerHTML;
-  document.body.innerHTML = printContents;
+  document.body.innerHTML = previewArea.innerHTML;
   window.print();
   document.body.innerHTML = originalContents;
   window.location.reload();
+};
+
+document.getElementById('pdfBtn').onclick = () => {
+  enterPreview();
+  setTimeout(() => {
+    document.getElementById('previewPrintBtn').click();
+    exitPreview();
+  }, 250);
 };
 
 function toggleDarkMode() {
@@ -312,6 +351,8 @@ function toggleDarkMode() {
 
 // Initialize with panels (1 for mobile, 5 desktop)
 for (let i = 0; i < (isMobile ? 1 : 5); i++) addPanel();
+
+document.getElementById('editBtn').style.display = "none";
 </script>
 </body>
 </html>
