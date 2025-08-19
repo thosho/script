@@ -44,25 +44,25 @@
     </style>
 </head>
 <body>
-    <div class="storyboard-container">
-        <div class="top-section">
-            <div class="top-fields" id="editFields">
-                <input type="text" id="titleField" placeholder="Storyboard Title">
-                <input type="text" id="directorField" placeholder="Director Name">
-                <input type="text" id="sequenceField" placeholder="Sequence">
-            </div>
-            <div class="saved-header" id="savedHeader">
-                <div class="saved-title" id="savedTitle"></div>
-                <span class="saved-director" id="savedDirector"></span>
-                <span class="saved-sequence" id="savedSequence"></span>
-            </div>
-            <button class="save-btn" id="saveBtn" onclick="saveHeader()">Save</button>
-            <button class="edit-btn" id="editBtn" onclick="editHeader()">Edit</button>
-        </div>
-        <div id="storyboardRows"></div>
-        <button onclick="addPanel()">Add Shot</button>
-        <button onclick="window.print()">Print as PDF</button>
+   <div class="storyboard-container">
+  <div class="top-section">
+    <div class="top-fields" id="editFields">
+      <input type="text" id="titleField" placeholder="Storyboard Title">
+      <input type="text" id="directorField" placeholder="Director Name">
+      <input type="text" id="sequenceField" placeholder="Sequence">
     </div>
+
+    <!-- This section will stay empty unless JS fills it -->
+    <div class="saved-header" id="savedHeader">
+      <div class="saved-title" id="savedTitle"></div>
+      <div class="saved-director" id="savedDirector"></div>
+      <div class="saved-sequence" id="savedSequence"></div>
+    </div>
+
+    <button class="save-btn" id="saveBtn" onclick="saveHeader()">Save</button>
+    <button class="edit-btn" id="editBtn" onclick="editHeader()">Edit</button>
+  </div>
+</div>
     <script>
         let panels = [];
         let panelId = 0;
