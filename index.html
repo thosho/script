@@ -3,171 +3,388 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fountain to Screenplay Converter</title>
+    <title>Fountain Script Converter</title>
+    <!-- Tailwind CSS for modern, responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for a classic screenplay look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- jsPDF and html2canvas for PDF export functionality -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
+        /* Custom styles to enhance the screenplay format */
         body {
-            font-family: 'Courier New', monospace;
-            background-color: #f8f8f8;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            font-family: 'Inter', sans-serif;
         }
-        #editor {
-            width: 100%;
-            max-width: 800px;
-            height: 300px;
-            font-size: 16px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            margin-bottom: 10px;
-            box-sizing: border-box;
+        /* Using a classic typewriter font for the screenplay output */
+        #screenplay-output {
+            font-family: 'Courier Prime', monospace;
         }
-        #convert-btn {
-            padding: 10px 20px;
-            background-color: #333;
-            color: white;
-            border: none;
-            cursor: pointer;
-            margin-bottom: 20px;
+        /* Custom scrollbar for a cleaner look */
+        textarea::-webkit-scrollbar, #screenplay-output::-webkit-scrollbar {
+            width: 8px;
         }
-        #output {
-            width: 100%;
-            max-width: 800px;
-            background-color: white;
-            padding: 20px;
-            border: 1px solid #ccc;
-            white-space: pre-wrap;
-            line-height: 1.5;
-            box-sizing: border-box;
+        textarea::-webkit-scrollbar-track, #screenplay-output::-webkit-scrollbar-track {
+            background: #1f2937;
         }
-        .title-page {
-            text-align: center;
-            margin-bottom: 50px;
+        textarea::-webkit-scrollbar-thumb, #screenplay-output::-webkit-scrollbar-thumb {
+            background-color: #4b5563;
+            border-radius: 20px;
         }
-        .scene-heading {
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-top: 20px;
+        #screenplay-output::-webkit-scrollbar-track {
+            background: #e5e7eb;
         }
-        .action {
-            margin: 10px 0;
+        #screenplay-output::-webkit-scrollbar-thumb {
+            background-color: #9ca3af;
         }
-        .character {
-            text-transform: uppercase;
-            margin-left: 200px;
-            margin-top: 20px;
-        }
-        .dialogue {
-            margin-left: 150px;
-            margin-right: 150px;
-        }
-        .parenthetical {
-            margin-left: 180px;
-        }
-        .transition {
-            text-align: right;
-            text-transform: uppercase;
-            font-weight: bold;
-            margin: 20px 0;
-        }
-        @media (max-width: 600px) {
-            body {
-                padding: 10px;
-            }
-            #editor {
-                height: 200px;
-            }
-            .character {
-                margin-left: 100px;
-            }
-            .dialogue {
-                margin-left: 50px;
-                margin-right: 50px;
-            }
-            .parenthetical {
-                margin-left: 80px;
-            }
+        /* Styling for the info modal */
+        #info-modal {
+            transition: opacity 0.3s ease;
         }
     </style>
 </head>
-<body>
-    <textarea id="editor" placeholder="Enter your Fountain markup here..."></textarea>
-    <button id="convert-btn">Convert to Screenplay</button>
-    <div id="output"></div>
+<body class="bg-gray-900 text-gray-200 flex flex-col h-screen">
+
+    <!-- Header Section -->
+    <header class="text-center py-4 border-b border-gray-700">
+        <h1 class="text-2xl md:text-3xl font-bold text-white">Fountain Script Pro</h1>
+    </header>
+
+    <!-- Toolbar -->
+    <div class="bg-gray-800 p-2 flex items-center justify-center flex-wrap gap-2 shadow-md">
+        <button id="new-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md text-sm">New</button>
+        <div class="relative inline-block text-left">
+            <button id="save-menu-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md text-sm inline-flex items-center">
+                Save As <svg class="ml-2 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+            </button>
+            <div id="save-menu" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-10">
+                <div class="py-1" role="menu" aria-orientation="vertical">
+                    <a href="#" id="save-fountain-btn" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem">.fountain</a>
+                    <a href="#" id="save-fdx-btn" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem">.fdx (Final Draft)</a>
+                    <a href="#" id="save-pdf-btn" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem">.pdf</a>
+                </div>
+            </div>
+        </div>
+        <button id="share-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md text-sm">Share</button>
+        <button id="undo-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md text-sm disabled:opacity-50" disabled>Undo</button>
+        <button id="redo-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md text-sm disabled:opacity-50" disabled>Redo</button>
+        <button id="info-btn" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-md text-sm">Info</button>
+    </div>
+
+    <!-- Main Content: Editor and Preview Panes -->
+    <main class="flex-grow flex flex-col md:flex-row gap-4 p-4 overflow-hidden">
+        <!-- Left Pane: Fountain Text Input -->
+        <div class="w-full md:w-1/2 h-full flex flex-col">
+            <textarea id="fountain-input" class="w-full h-full bg-gray-800 border border-gray-700 rounded-lg p-4 text-gray-200 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+        </div>
+        <!-- Right Pane: Formatted Screenplay Output -->
+        <div class="w-full md:w-1/2 h-full flex flex-col">
+            <div id="screenplay-output" class="w-full h-full bg-white text-black rounded-lg p-6 md:p-8 overflow-y-auto">
+                <!-- Formatted screenplay will be injected here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Info Modal -->
+    <div id="info-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 hidden z-20">
+        <div class="bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full p-6 relative">
+            <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white">&times;</button>
+            <h2 class="text-2xl font-bold mb-4 text-white">About Fountain Script Pro</h2>
+            <p class="text-gray-300 mb-4">This is a simple but powerful tool to write screenplays using the Fountain syntax. It's designed to be fast, offline-first, and mobile-friendly.</p>
+            <h3 class="text-xl font-semibold mb-2 text-white">Basic Fountain Syntax</h3>
+            <ul class="list-disc list-inside text-gray-300 space-y-1">
+                <li><strong class="text-white">Scene Headings:</strong> Start with INT. or EXT. (e.g., `INT. APARTMENT - DAY`)</li>
+                <li><strong class="text-white">Character:</strong> A name in all caps on its own line.</li>
+                <li><strong class="text-white">Dialogue:</strong> Text directly following a character line.</li>
+                <li><strong class="text-white">Parenthetical:</strong> Text in parentheses below a character.</li>
+                <li><strong class="text-white">Transition:</strong> A line ending in TO: or starting with FADE.</li>
+            </ul>
+        </div>
+    </div>
 
     <script>
-        // Simplified Fountain parser based on Fountain.js logic
-        // This is a basic implementation for demonstration; for full features, integrate a complete parser like Fountain.js
-        function parseFountain(input) {
-            const lines = input.split('\n');
-            let html = '';
-            let inDialogue = false;
-            let currentCharacter = '';
+        // --- DOM Element References ---
+        const fountainInput = document.getElementById('fountain-input');
+        const screenplayOutput = document.getElementById('screenplay-output');
+        const newBtn = document.getElementById('new-btn');
+        const saveMenuBtn = document.getElementById('save-menu-btn');
+        const saveMenu = document.getElementById('save-menu');
+        const saveFountainBtn = document.getElementById('save-fountain-btn');
+        const saveFdxBtn = document.getElementById('save-fdx-btn');
+        const savePdfBtn = document.getElementById('save-pdf-btn');
+        const shareBtn = document.getElementById('share-btn');
+        const undoBtn = document.getElementById('undo-btn');
+        const redoBtn = document.getElementById('redo-btn');
+        const infoBtn = document.getElementById('info-btn');
+        const infoModal = document.getElementById('info-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
 
-            lines.forEach(line => {
-                line = line.trim();
+        // --- Initial Sample Script ---
+        const sampleScript = `Title: My Awesome Script
+Author: A. Writer
 
-                if (!line) {
-                    return;
+.THE APARTMENT - DAY
+
+A sparse, modern apartment. Sunlight streams through a large window.
+
+JANE (28), sharp and energetic, types furiously on her laptop. MARK (30), relaxed and thoughtful, sips his coffee, watching her.
+
+MARK
+(smiling)
+You're going to wear a hole in that keyboard.
+
+JANE
+(not looking up)
+This proposal is due in an hour.
+
+> CUT TO:
+
+EXT. PARK - LATER
+
+Jane and Mark walk together, holding coffee cups. The sun is lower in the sky.
+
+FADE OUT.`;
+
+        // --- Undo/Redo Manager ---
+        const history = {
+            stack: [""],
+            currentIndex: 0,
+            add(value) {
+                // When a new state is added, remove any 'redo' states
+                this.stack = this.stack.slice(0, this.currentIndex + 1);
+                this.stack.push(value);
+                this.currentIndex++;
+                this.updateButtons();
+            },
+            undo() {
+                if (this.canUndo()) {
+                    this.currentIndex--;
+                    this.updateInput();
                 }
+            },
+            redo() {
+                if (this.canRedo()) {
+                    this.currentIndex++;
+                    this.updateInput();
+                }
+            },
+            canUndo: () => history.currentIndex > 0,
+            canRedo: () => history.currentIndex < history.stack.length - 1,
+            updateInput() {
+                fountainInput.value = this.stack[this.currentIndex];
+                renderPreview();
+                this.updateButtons();
+            },
+            updateButtons() {
+                undoBtn.disabled = !this.canUndo();
+                redoBtn.disabled = !this.canRedo();
+            }
+        };
 
-                // Title page detection (simple key:value)
-                if (line.includes(':')) {
-                    const [key, value] = line.split(':');
-                    if (['Title', 'Author', 'Draft date'].includes(key.trim())) {
-                        html += `<div class="title-page"><h1>${value.trim()}</h1></div>`;
-                        return;
+        // --- Core Parsing Logic ---
+        function parseFountain(text) {
+            const lines = text.split('\n');
+            let html = '';
+            let isDialogue = false;
+            let sceneNumber = 0;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+
+                if (line === '') {
+                    html += '<br>';
+                    isDialogue = false;
+                    continue;
+                }
+                
+                const isSceneHeading = line.startsWith('INT.') || line.startsWith('EXT.') || line.startsWith('EST.') || line.startsWith('I/E.') || line.startsWith('.');
+                if (isSceneHeading) {
+                    sceneNumber++;
+                    html += `<div class="flex justify-between font-bold uppercase my-4"><p>${line.replace('.', '')}</p><p>${sceneNumber}</p></div>`;
+                    isDialogue = false;
+                } else if (line.startsWith('>') && line.endsWith('<')) {
+                    html += `<p class="text-center my-4">${line.substring(1, line.length - 1).trim()}</p>`;
+                    isDialogue = false;
+                } else if (line.endsWith(' TO:') || line.startsWith('FADE') || line.startsWith('CUT')) {
+                    html += `<p class="text-right my-4 uppercase">${line}</p>`;
+                    isDialogue = false;
+                } else if (line.match(/^[A-Z\s()0-9]+$/) && line === line.toUpperCase() && i + 1 < lines.length && lines[i + 1].trim() !== '' && !lines[i+1].trim().startsWith('(') ) {
+                    html += `<p class="uppercase" style="margin-left: 37%;">${line}</p>`;
+                    isDialogue = true;
+                } else if (isDialogue && line.startsWith('(') && line.endsWith(')')) {
+                    html += `<p style="margin-left: 30%;">${line}</p>`;
+                } else {
+                    if (isDialogue) {
+                        html += `<p style="margin-left: 25%; margin-right: 15%;">${line}</p>`;
+                    } else {
+                        // Check for Title/Author metadata
+                        if(line.startsWith('Title:')) {
+                            html += `<h1 class="text-center text-2xl mt-8 mb-2">${line.replace('Title:', '').trim()}</h1>`;
+                        } else if (line.startsWith('Author:')) {
+                            html += `<h2 class="text-center text-lg mb-8">${line.replace('Author:', '').trim()}</h2>`;
+                        }
+                        else {
+                           html += `<p class="my-4">${line}</p>`;
+                        }
                     }
                 }
-
-                // Scene headings start with INT. or EXT.
-                if (line.toUpperCase().startsWith('INT.') || line.toUpperCase().startsWith('EXT.')) {
-                    html += `<div class="scene-heading">${line.toUpperCase()}</div>`;
-                    inDialogue = false;
-                    return;
-                }
-
-                // Transitions end with TO: or are like FADE OUT.
-                if (line.toUpperCase().endsWith('TO:') || line.toUpperCase() === 'FADE OUT.') {
-                    html += `<div class="transition">${line.toUpperCase()}</div>`;
-                    inDialogue = false;
-                    return;
-                }
-
-                // Character names are uppercase, not starting with !
-                if (line === line.toUpperCase() && !line.startsWith('!') && line.length > 0) {
-                    currentCharacter = line;
-                    html += `<div class="character">${line}</div>`;
-                    inDialogue = true;
-                    return;
-                }
-
-                // Parentheticals start with (
-                if (inDialogue && line.startsWith('(')) {
-                    html += `<div class="parenthetical">${line}</div>`;
-                    return;
-                }
-
-                // Dialogue follows character
-                if (inDialogue) {
-                    html += `<div class="dialogue">${line}</div>`;
-                    return;
-                }
-
-                // Default to action lines
-                html += `<div class="action">${line}</div>`;
-            });
-
+            }
             return html;
         }
 
-        document.getElementById('convert-btn').addEventListener('click', () => {
-            const input = document.getElementById('editor').value;
-            const output = parseFountain(input);
-            document.getElementById('output').innerHTML = output;
+        function renderPreview() {
+            const rawText = fountainInput.value;
+            const formattedHtml = parseFountain(rawText);
+            screenplayOutput.innerHTML = formattedHtml;
+        }
+
+        // --- File & Action Handlers ---
+        function downloadFile(filename, content, mimeType) {
+            const element = document.createElement('a');
+            element.setAttribute('href', `data:${mimeType};charset=utf-8,` + encodeURIComponent(content));
+            element.setAttribute('download', filename);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+        
+        function createFdxContent(fountainText) {
+            // This is a simplified FDX generator. A full implementation is complex.
+            const titleMatch = fountainText.match(/^Title:\s*(.*)/m);
+            const title = titleMatch ? titleMatch[1] : 'Untitled';
+            
+            let fdx = `<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<FinalDraft DocumentType="Script" Template="No" Version="1">
+<Content>
+<Paragraph Type="Scene Heading">
+<Text>INT. SCENE - DAY</Text>
+</Paragraph>
+<Paragraph Type="Action">
+<Text>${fountainText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}
+</Text>
+</Paragraph>
+</Content>
+</FinalDraft>`;
+            return fdx;
+        }
+
+        // --- Event Listeners ---
+        newBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to start a new project? Any unsaved changes will be lost.')) {
+                fountainInput.value = `Title: \nAuthor: \n\n`;
+                history.stack = [fountainInput.value];
+                history.currentIndex = 0;
+                history.updateButtons();
+                renderPreview();
+            }
         });
+
+        saveMenuBtn.addEventListener('click', () => {
+            saveMenu.classList.toggle('hidden');
+        });
+        
+        document.addEventListener('click', (e) => {
+            if (!saveMenuBtn.contains(e.target)) {
+                saveMenu.classList.add('hidden');
+            }
+        });
+
+        saveFountainBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            downloadFile('script.fountain', fountainInput.value, 'text/plain');
+            saveMenu.classList.add('hidden');
+        });
+
+        saveFdxBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const fdxContent = createFdxContent(fountainInput.value);
+            downloadFile('script.fdx', fdxContent, 'application/xml');
+            saveMenu.classList.add('hidden');
+        });
+
+        savePdfBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            saveMenu.classList.add('hidden');
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({
+                orientation: 'p',
+                unit: 'pt',
+                format: 'a4'
+            });
+
+            // Temporarily set width for rendering
+            screenplayOutput.style.width = '595pt'; // A4 width in points
+            
+            const canvas = await html2canvas(screenplayOutput, {
+                scale: 2, // Higher scale for better quality
+                useCORS: true,
+                logging: false,
+            });
+
+            screenplayOutput.style.width = ''; // Reset width
+            
+            const imgData = canvas.toDataURL('image/png');
+            const imgProps = pdf.getImageProperties(imgData);
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            
+            let heightLeft = pdfHeight;
+            let position = 0;
+            const pageHeight = pdf.internal.pageSize.getHeight();
+
+            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+            heightLeft -= pageHeight;
+
+            while (heightLeft > 0) {
+                position = heightLeft - pdfHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+                heightLeft -= pageHeight;
+            }
+            
+            pdf.save('script.pdf');
+        });
+
+        shareBtn.addEventListener('click', () => {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'My Screenplay',
+                    text: fountainInput.value,
+                }).catch(console.error);
+            } else {
+                alert('Web Share API is not supported in your browser. Try copying the text manually.');
+            }
+        });
+
+        let inputTimeout;
+        fountainInput.addEventListener('input', () => {
+            renderPreview();
+            clearTimeout(inputTimeout);
+            inputTimeout = setTimeout(() => {
+                history.add(fountainInput.value);
+            }, 500); // Add to history after 500ms of inactivity
+        });
+
+        undoBtn.addEventListener('click', () => history.undo());
+        redoBtn.addEventListener('click', () => history.redo());
+        
+        infoBtn.addEventListener('click', () => infoModal.classList.remove('hidden'));
+        closeModalBtn.addEventListener('click', () => infoModal.classList.add('hidden'));
+        infoModal.addEventListener('click', (e) => {
+            if (e.target === infoModal) {
+                 infoModal.classList.add('hidden');
+            }
+        });
+
+        // --- Initialization ---
+        fountainInput.value = sampleScript.trim();
+        history.stack = [fountainInput.value];
+        history.currentIndex = 0;
+        history.updateButtons();
+        renderPreview();
     </script>
 </body>
 </html>
