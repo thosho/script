@@ -23,8 +23,9 @@
             line-height: 1.5;
             white-space: pre-wrap;
         }
+        .pdf-title-page { text-align: center; padding-top: 30vh; padding-bottom: 30vh; box-sizing: border-box; }
         .title-page { text-align: center; margin-bottom: 0; }
-        .title-page h1 { font-weight: bold; margin-bottom: 0.25rem; }
+        .title-page h1 { font-weight: bold; margin-bottom: 0.25rem; text-transform: uppercase; }
         .scene-heading { font-weight: bold; text-transform: uppercase; margin-top: 20px; }
         .action { margin: 10px 0; }
         .character { text-transform: uppercase; margin-left: 37%; margin-top: 20px; }
@@ -49,6 +50,9 @@
         :fullscreen .main-content {
             height: 100vh;
         }
+        :fullscreen #fullscreen-btn-inline {
+            display: flex;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200 flex flex-col h-screen overflow-hidden">
@@ -64,23 +68,20 @@
         
         <h1 class="text-2xl font-bold text-white absolute left-1/2 -translate-x-1/2">Fountain Script Pro</h1>
 
-        <!-- Fullscreen Toggle Button -->
+        <!-- Fullscreen Toggle Button (Header) -->
         <button id="fullscreen-btn" class="text-white p-2 rounded-full hover:bg-gray-700 z-30" title="Toggle Fullscreen">
             <svg id="fullscreen-open-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-arrows-fullscreen" viewBox="0 0 16 16">
                 <path fill-rule="evenodd" d="M5.828 10.172a.5.5 0 0 0-.707 0l-4.096 4.096V11.5a.5.5 0 0 0-1 0v3.975a.5.5 0 0 0 .5.5H4.5a.5.5 0 0 0 0-1H1.732l4.096-4.096a.5.5 0 0 0 0-.707zm4.344 0a.5.5 0 0 1 .707 0l4.096 4.096V11.5a.5.5 0 1 1 1 0v3.975a.5.5 0 0 1-.5.5H11.5a.5.5 0 0 1 0-1h2.768l-4.096-4.096a.5.5 0 0 1 0-.707zm0-4.344a.5.5 0 0 0 .707 0l4.096-4.096V4.5a.5.5 0 1 0 1 0V.525a.5.5 0 0 0-.5-.5H11.5a.5.5 0 0 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 0 .707zm-4.344 0a.5.5 0 0 1-.707 0L1.025 1.732V4.5a.5.5 0 0 1-1 0V.525a.5.5 0 0 1 .5-.5H4.5a.5.5 0 0 1 0 1H1.732l4.096 4.096a.5.5 0 0 1 0 .707z"/>
-            </svg>
-            <svg id="fullscreen-close-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-fullscreen-exit hidden" viewBox="0 0 16 16">
-                <path d="M5.5 0a.5.5 0 0 1 .5.5v4A.5.5 0 0 1 5 5h-4a.5.5 0 0 1 0-1h3.5V.5a.5.5 0 0 1 .5-.5zm-5 5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V6.5H.5a.5.5 0 0 1-.5-.5zm10.5 5.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-3.5V15.5a.5.5 0 0 1-1 0v-4zM11 5.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v3.5a.5.5 0 0 1-1 0V6.5h-3a.5.5 0 0 1-.5-.5z"/>
             </svg>
         </button>
     </header>
     
     <!-- Hamburger Menu Panel -->
-    <div id="menu-panel" class="absolute top-14 left-0 w-64 bg-gray-800 shadow-lg z-40 transform -translate-x-full transition-transform duration-300 ease-in-out rounded-br-lg">
+    <div id="menu-panel" class="absolute top-14 left-0 w-52 bg-gray-800 shadow-lg z-40 transform -translate-x-full transition-transform duration-300 ease-in-out rounded-br-lg">
         <div class="p-4">
-            <h2 class="text-xl font-bold text-white mb-4">Menu</h2>
             <nav class="flex flex-col space-y-2">
                 <a href="#" id="new-btn" class="text-gray-300 hover:bg-gray-700 p-2 rounded-md">New Project</a>
+                <a href="#" id="title-page-btn" class="text-gray-300 hover:bg-gray-700 p-2 rounded-md">Title Page</a>
                 <div class="relative">
                     <a href="#" id="save-menu-btn" class="w-full text-left text-gray-300 hover:bg-gray-700 p-2 rounded-md">Save As...</a>
                     <div id="save-menu" class="mt-1 ml-4 hidden">
@@ -90,6 +91,10 @@
                     </div>
                 </div>
                 <a href="#" id="share-btn" class="text-gray-300 hover:bg-gray-700 p-2 rounded-md">Share</a>
+                <a href="#" id="scene-no-btn" class="text-gray-300 hover:bg-gray-700 p-2 rounded-md flex justify-between items-center">
+                    <span>Scene Nos.</span>
+                    <span id="scene-no-indicator" class="w-4 h-4 rounded-full bg-green-500"></span>
+                </a>
                 <a href="#" id="info-btn" class="text-gray-300 hover:bg-gray-700 p-2 rounded-md">Info</a>
             </nav>
         </div>
@@ -113,16 +118,23 @@
             </div>
             <!-- Textarea and Side Toolbar Wrapper -->
             <div class="flex-grow p-4 flex gap-2 overflow-hidden">
-                 <textarea id="fountain-input" class="w-full h-full bg-gray-800 border border-gray-700 rounded-lg p-4 text-gray-200 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                 <div class="flex-grow h-full overflow-y-auto">
+                    <textarea id="fountain-input" class="w-full h-full bg-gray-800 border border-gray-700 rounded-lg p-4 text-gray-200 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                 </div>
                  <!-- Side Toolbar -->
-                 <div class="flex flex-col gap-2">
-                    <button class="action-btn bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md text-sm" data-action="caps" title="Toggle Case">C</button>
-                    <button class="action-btn bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md text-sm" data-action="parens" title="Add Parentheses">()</button>
-                    <button class="action-btn bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md text-sm" data-action="int" title="Insert INT.">I</button>
-                    <button class="action-btn bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md text-sm" data-action="ext" title="Insert EXT.">E</button>
-                    <button class="action-btn bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md text-sm" data-action="day" title="Insert DAY">D</button>
-                    <button class="action-btn bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md text-sm" data-action="night" title="Insert NIGHT">N</button>
-                    <button class="action-btn bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md text-sm" data-action="transition" title="Cycle Transition">T</button>
+                 <div class="flex flex-col gap-2 flex-shrink-0">
+                    <button id="fullscreen-btn-inline" class="hidden bg-gray-600 hover:bg-gray-700 text-white font-bold p-2 rounded-md text-sm" title="Exit Fullscreen">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-fullscreen-exit" viewBox="0 0 16 16">
+                            <path d="M5.5 0a.5.5 0 0 1 .5.5v4A.5.5 0 0 1 5 5h-4a.5.5 0 0 1 0-1h3.5V.5a.5.5 0 0 1 .5-.5zm-5 5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V6.5H.5a.5.5 0 0 1-.5-.5zm10.5 5.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-3.5V15.5a.5.5 0 0 1-1 0v-4zM11 5.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v3.5a.5.5 0 0 1-1 0V6.5h-3a.5.5 0 0 1-.5-.5z"/>
+                        </svg>
+                    </button>
+                    <button class="action-btn bg-gray-600 hover:bg-gray-700 text-white font-bold p-2 rounded-md text-sm" data-action="caps" title="Toggle Case">C</button>
+                    <button class="action-btn bg-gray-600 hover:bg-gray-700 text-white font-bold p-2 rounded-md text-sm" data-action="parens" title="Add Parentheses">()</button>
+                    <button class="action-btn bg-gray-600 hover:bg-gray-700 text-white font-bold p-2 rounded-md text-sm" data-action="int" title="Insert INT.">I</button>
+                    <button class="action-btn bg-gray-600 hover:bg-gray-700 text-white font-bold p-2 rounded-md text-sm" data-action="ext" title="Insert EXT.">E</button>
+                    <button class="action-btn bg-gray-600 hover:bg-gray-700 text-white font-bold p-2 rounded-md text-sm" data-action="day" title="Insert DAY">D</button>
+                    <button class="action-btn bg-gray-600 hover:bg-gray-700 text-white font-bold p-2 rounded-md text-sm" data-action="night" title="Insert NIGHT">N</button>
+                    <button class="action-btn bg-gray-600 hover:bg-gray-700 text-white font-bold p-2 rounded-md text-sm" data-action="transition" title="Cycle Transition">T</button>
                  </div>
             </div>
              <!-- Action Button Area -->
@@ -155,12 +167,49 @@
 
     <!-- Info Modal -->
     <div id="info-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full p-6 relative">
-            <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl">&times;</button>
-            <h2 class="text-2xl font-bold mb-4 text-white">About Fountain Script Pro</h2>
-            <p class="text-gray-300 mb-4">This tool auto-formats your text into a screenplay. It's designed to be fast, offline-first, and mobile-friendly.</p>
+        <div class="bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full p-6 relative overflow-y-auto max-h-full">
+            <button id="close-info-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl">&times;</button>
+            <h2 class="text-2xl font-bold mb-4 text-white">Info & Help</h2>
+            <h3 class="text-xl font-semibold mt-4 mb-2 text-white">Fountain Syntax</h3>
+            <ul class="list-disc list-inside text-gray-300 space-y-1">
+                <li><strong class="text-white">Scene Heading:</strong> Line starts with `INT.` or `EXT.`.</li>
+                <li><strong class="text-white">Character:</strong> Any line in all uppercase.</li>
+                <li><strong class="text-white">Dialogue:</strong> Any text following a Character.</li>
+                <li><strong class="text-white">Parenthetical:</strong> Text inside `(parentheses)` below a Character.</li>
+                <li><strong class="text-white">Transition:</strong> Line ends with `TO:` or is `FADE OUT.` etc.</li>
+            </ul>
+            <h3 class="text-xl font-semibold mt-6 mb-2 text-white">Button Guide</h3>
+            <ul class="list-disc list-inside text-gray-300 space-y-1">
+                <li><strong class="text-white">C:</strong> Toggles selected text or current line between UPPERCASE and lowercase.</li>
+                <li><strong class="text-white">():</strong> Wraps selected text in parentheses.</li>
+                <li><strong class="text-white">I / E:</strong> Inserts `INT.` or `EXT.` for scene headings.</li>
+                <li><strong class="text-white">D / N:</strong> Appends ` - DAY` or ` - NIGHT` to the current line.</li>
+                <li><strong class="text-white">T:</strong> Inserts and cycles through transitions (`CUT TO:`, `FADE IN:`, etc.).</li>
+            </ul>
         </div>
     </div>
+    
+    <!-- Title Page Modal -->
+    <div id="title-page-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6 relative">
+             <button id="close-title-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl">&times;</button>
+            <h2 class="text-2xl font-bold mb-4 text-white">Title Page</h2>
+            <div class="space-y-4">
+                <div>
+                    <label for="title-input" class="block text-sm font-medium text-gray-300">Title</label>
+                    <input type="text" id="title-input" class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                 <div>
+                    <label for="author-input" class="block text-sm font-medium text-gray-300">Author</label>
+                    <input type="text" id="author-input" class="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+            </div>
+            <div class="mt-6">
+                 <button id="save-title-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">Save</button>
+            </div>
+        </div>
+    </div>
+
 
     <script>
         // --- DOM Element References ---
@@ -177,23 +226,33 @@
         const redoBtn = document.getElementById('redo-btn');
         const infoBtn = document.getElementById('info-btn');
         const infoModal = document.getElementById('info-modal');
-        const closeModalBtn = document.getElementById('close-modal-btn');
+        const closeModalBtn = document.getElementById('close-info-modal-btn');
         const writeView = document.getElementById('write-view');
         const scriptView = document.getElementById('script-view');
         const showScriptBtn = document.getElementById('show-script-btn');
         const showWriteBtn = document.getElementById('show-write-btn');
         const fullscreenBtn = document.getElementById('fullscreen-btn');
-        const fullscreenOpenIcon = document.getElementById('fullscreen-open-icon');
-        const fullscreenCloseIcon = document.getElementById('fullscreen-close-icon');
+        const fullscreenBtnInline = document.getElementById('fullscreen-btn-inline');
         const hamburgerBtn = document.getElementById('hamburger-btn');
         const menuPanel = document.getElementById('menu-panel');
         const zoomInBtn = document.getElementById('zoom-in-btn');
         const zoomOutBtn = document.getElementById('zoom-out-btn');
+        const titlePageBtn = document.getElementById('title-page-btn');
+        const titlePageModal = document.getElementById('title-page-modal');
+        const closeTitleModalBtn = document.getElementById('close-title-modal-btn');
+        const saveTitleBtn = document.getElementById('save-title-btn');
+        const titleInput = document.getElementById('title-input');
+        const authorInput = document.getElementById('author-input');
+        const sceneNoBtn = document.getElementById('scene-no-btn');
+        const sceneNoIndicator = document.getElementById('scene-no-indicator');
+
+        // --- Global State ---
+        let scriptTitle = "My Awesome Script";
+        let scriptAuthor = "A. Writer";
+        let showSceneNumbers = true;
 
         // --- Initial Sample Script ---
-        const sampleScript = `Title: My Awesome Script
-Author: A. Writer
-
+        const sampleScript = `
 INT. APARTMENT - DAY
 
 A sparse, modern apartment. A MAN IN A HAT stands by the window.
@@ -233,28 +292,28 @@ FADE OUT.`;
         };
 
         // --- PARSING ENGINE FROM YOUR PROVIDED CODE ---
-        function parseFountain(input, addSceneNumbers = true) {
+        function parseFountain(input, addSceneNumbers = true, forPdf = false) {
             const lines = input.split('\n');
             let html = '';
             let inDialogue = false;
             let sceneNumber = 1;
+            
+            // Add Title Page if available and for PDF export
+            if (forPdf && (scriptTitle || scriptAuthor)) {
+                html += `<div class="pdf-title-page"><div class="title-page">`;
+                if (scriptTitle) html += `<h1>${scriptTitle}</h1>`;
+                if (scriptAuthor) html += `<h2>${scriptAuthor}</h2>`;
+                html += `</div></div>`;
+            }
 
             lines.forEach(line => {
                 line = line.trim();
                 if (!line) return;
 
-                // Title page
-                if (line.includes(':')) {
-                    const [key, value] = line.split(':');
-                    if (['Title', 'Author', 'Draft date'].includes(key.trim())) {
-                        html += `<div class="title-page"><h1>${value.trim()}</h1></div>`;
-                        return;
-                    }
-                }
-
                 // Scene headings with optional numbering
                 if (line.toUpperCase().startsWith('INT.') || line.toUpperCase().startsWith('EXT.')) {
-                    const numberedLine = addSceneNumbers ? `<div class="flex justify-between"><span>${line.toUpperCase()}</span><span>${sceneNumber}</span></div>` : line.toUpperCase();
+                    const sceneText = line.toUpperCase();
+                    const numberedLine = addSceneNumbers ? `<div class="flex justify-between"><span>${sceneText}</span><span>${sceneNumber}</span></div>` : sceneText;
                     html += `<div class="scene-heading">${numberedLine}</div>`;
                     sceneNumber++;
                     inDialogue = false;
@@ -296,8 +355,16 @@ FADE OUT.`;
 
         function renderPreview() {
             const rawText = fountainInput.value;
-            const formattedHtml = parseFountain(rawText);
-            screenplayOutput.innerHTML = formattedHtml;
+            // For preview, we add the title page but not with the PDF-specific class
+            let previewHtml = '';
+            if (scriptTitle || scriptAuthor) {
+                previewHtml += `<div class="title-page">`;
+                if (scriptTitle) previewHtml += `<h1>${scriptTitle}</h1>`;
+                if (scriptAuthor) previewHtml += `<h2>${scriptAuthor}</h2>`;
+                previewHtml += `</div>`;
+            }
+            previewHtml += parseFountain(rawText, showSceneNumbers, false); // false for forPdf
+            screenplayOutput.innerHTML = previewHtml;
         }
 
         // --- File & Action Handlers ---
@@ -406,6 +473,8 @@ FADE OUT.`;
         newBtn.addEventListener('click', () => {
             if (confirm('Start a new project? Unsaved changes will be lost.')) {
                 fountainInput.value = '';
+                scriptTitle = '';
+                scriptAuthor = '';
                 screenplayOutput.innerHTML = '';
                 history.stack = [''];
                 history.currentIndex = 0;
@@ -417,8 +486,16 @@ FADE OUT.`;
             e.preventDefault();
             saveMenu.classList.toggle('hidden');
         });
-        saveFountainBtn.addEventListener('click', (e) => { e.preventDefault(); downloadFile('script.fountain', fountainInput.value, 'text/plain'); });
-        saveFdxBtn.addEventListener('click', (e) => { e.preventDefault(); downloadFile('script.fdx', createFdxContent(fountainInput.value), 'application/xml'); });
+        saveFountainBtn.addEventListener('click', (e) => { 
+            e.preventDefault();
+            const filename = (scriptTitle || 'script').replace(/\s+/g, '_').replace(/[^\w-]/g, '');
+            downloadFile(`${filename}.fountain`, fountainInput.value, 'text/plain'); 
+        });
+        saveFdxBtn.addEventListener('click', (e) => { 
+            e.preventDefault();
+            const filename = (scriptTitle || 'script').replace(/\s+/g, '_').replace(/[^\w-]/g, '');
+            downloadFile(`${filename}.fdx`, createFdxContent(fountainInput.value), 'application/xml'); 
+        });
         shareBtn.addEventListener('click', () => {
             if (navigator.share) {
                 navigator.share({ title: 'My Screenplay', text: fountainInput.value }).catch(console.error);
@@ -450,12 +527,18 @@ FADE OUT.`;
         // PDF Save (requires html2canvas)
         savePdfBtn.addEventListener('click', async (e) => {
             e.preventDefault();
-            renderPreview();
+            // Temporarily render with PDF-specific formatting
+            screenplayOutput.innerHTML = parseFountain(fountainInput.value, showSceneNumbers, true);
+
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({ orientation: 'p', unit: 'pt', format: 'a4' });
             screenplayOutput.style.width = '595pt';
-            const canvas = await html2canvas(screenplayOutput, { scale: 2 });
+            const canvas = await html2canvas(screenplayOutput, { scale: 2, scrollY: -window.scrollY });
             screenplayOutput.style.width = '';
+            
+            // Restore the normal preview
+            renderPreview(); 
+
             const imgData = canvas.toDataURL('image/png');
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
@@ -469,7 +552,8 @@ FADE OUT.`;
                 pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
                 heightLeft -= pdf.internal.pageSize.getHeight();
             }
-            pdf.save('script.pdf');
+            const filename = (scriptTitle || 'script').replace(/\s+/g, '_').replace(/[^\w-]/g, '');
+            pdf.save(`${filename}.pdf`);
         });
 
         let inputTimeout;
@@ -509,20 +593,22 @@ FADE OUT.`;
         });
 
         // Fullscreen Logic
-        fullscreenBtn.addEventListener('click', () => {
-            if (!document.fullscreenElement) {
+        const toggleFullscreen = () => {
+             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => {
                     console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
                 });
             } else {
                 document.exitFullscreen();
             }
-        });
+        };
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
+        fullscreenBtnInline.addEventListener('click', toggleFullscreen);
+
 
         document.addEventListener('fullscreenchange', () => {
             const isFullscreen = !!document.fullscreenElement;
-            fullscreenOpenIcon.classList.toggle('hidden', isFullscreen);
-            fullscreenCloseIcon.classList.toggle('hidden', !isFullscreen);
+            fullscreenBtn.classList.toggle('hidden', isFullscreen); // Hide header button
         });
         
         // Zoom Logic
@@ -537,6 +623,27 @@ FADE OUT.`;
         zoomOutBtn.addEventListener('click', () => {
             currentFontSize = Math.max(8, currentFontSize - 2); // Minimum font size of 8px
             updateFontSize();
+        });
+        
+        // Title Page Modal Logic
+        titlePageBtn.addEventListener('click', () => {
+            titleInput.value = scriptTitle;
+            authorInput.value = scriptAuthor;
+            titlePageModal.classList.remove('hidden');
+            menuPanel.classList.add('-translate-x-full');
+        });
+        closeTitleModalBtn.addEventListener('click', () => titlePageModal.classList.add('hidden'));
+        saveTitleBtn.addEventListener('click', () => {
+            scriptTitle = titleInput.value;
+            scriptAuthor = authorInput.value;
+            titlePageModal.classList.add('hidden');
+        });
+        
+        // Scene Number Toggle Logic
+        sceneNoBtn.addEventListener('click', () => {
+            showSceneNumbers = !showSceneNumbers;
+            sceneNoIndicator.classList.toggle('bg-green-500', showSceneNumbers);
+            sceneNoIndicator.classList.toggle('bg-gray-500', !showSceneNumbers);
         });
 
         // --- Initialization ---
