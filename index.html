@@ -3,17 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fountain Script Pro</title>
+    <title>Fountain TO Script Convertor</title>
     <!-- Tailwind CSS for modern, responsive styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts for a classic screenplay look -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- jsPDF and html2canvas for PDF export functionality -->
+    <!-- jsPDF for PDF export functionality -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         /* Using your provided CSS classes for formatting, adapted for the UI */
         body {
@@ -24,15 +22,14 @@
             line-height: 1.5;
             white-space: pre-wrap;
         }
-        .pdf-title-page { text-align: center; padding-top: 30vh; padding-bottom: 30vh; box-sizing: border-box; }
-        .title-page { text-align: center; margin-bottom: 0; }
+        .title-page { text-align: center; margin-bottom: 0; padding-top: 2rem; }
         .title-page h1 { font-weight: bold; margin-bottom: 0.25rem; text-transform: uppercase; }
-        .scene-heading { font-weight: bold; text-transform: uppercase; margin-top: 20px; }
-        .action { margin: 10px 0; }
-        .character { text-transform: uppercase; margin-left: 37%; margin-top: 20px; }
+        .scene-heading { font-weight: bold; text-transform: uppercase; }
+        .action { /* No margin needed, spacing controlled by <br> */ }
+        .character { text-transform: uppercase; margin-left: 37%; }
         .dialogue { margin-left: 25%; margin-right: 15%; }
         .parenthetical { margin-left: 30%; }
-        .transition { text-align: right; text-transform: uppercase; font-weight: bold; margin: 20px 0; }
+        .transition { text-align: right; text-transform: uppercase; font-weight: bold; }
 
         /* Custom scrollbar for a cleaner look */
         textarea::-webkit-scrollbar, #screenplay-output::-webkit-scrollbar { width: 8px; }
@@ -67,8 +64,8 @@
             </svg>
         </button>
         
-       <h1 class="text-2xl font-bold text-white absolute left-1/2 -translate-x-1/2" style="font-family: 'Courier Prime', monospace;">
-  scrAipt
+        <h1 class="text-2xl font-bold text-white absolute left-1/2 -translate-x-1/2" style="font-family: 'Courier Prime', monospace;">
+  ToscripT
 </h1>
 
 
@@ -293,80 +290,89 @@ FADE OUT.`;
             }
         };
 
-        // --- PARSING ENGINE FROM YOUR PROVIDED CODE ---
-        function parseFountain(input, addSceneNumbers = true, forPdf = false) {
+        // --- PARSING ENGINE (TOKENIZER) ---
+        function tokenizeFountain(input) {
             const lines = input.split('\n');
-            let html = '';
+            const tokens = [];
             let inDialogue = false;
-            let sceneNumber = 1;
-            
-            // Add Title Page if available and for PDF export
-            if (forPdf && (scriptTitle || scriptAuthor)) {
-                html += `<div class="pdf-title-page"><div class="title-page">`;
-                if (scriptTitle) html += `<h1>${scriptTitle}</h1>`;
-                if (scriptAuthor) html += `<h2>${scriptAuthor}</h2>`;
-                html += `</div></div>`;
-            }
 
-            lines.forEach(line => {
-                line = line.trim();
-                if (!line) return;
+            for(let i=0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                const nextLine = (i + 1 < lines.length) ? lines[i+1].trim() : null;
 
-                // Scene headings with optional numbering
-                if (line.toUpperCase().startsWith('INT.') || line.toUpperCase().startsWith('EXT.')) {
-                    const sceneText = line.toUpperCase();
-                    const numberedLine = addSceneNumbers ? `<div class="flex justify-between"><span>${sceneText}</span><span>${sceneNumber}</span></div>` : sceneText;
-                    html += `<div class="scene-heading">${numberedLine}</div>`;
-                    sceneNumber++;
+                if (!line) {
+                    tokens.push({ type: 'empty' });
                     inDialogue = false;
-                    return;
+                    continue;
+                }
+
+                // Scene headings
+                if (line.toUpperCase().startsWith('INT.') || line.toUpperCase().startsWith('EXT.')) {
+                    tokens.push({ type: 'sceneHeading', content: line.toUpperCase() });
+                    inDialogue = false;
+                    continue;
                 }
 
                 // Transitions
                 if (line.toUpperCase().endsWith('TO:') || line.toUpperCase() === 'FADE OUT.' || line.toUpperCase() === 'FADE IN:' || line.toUpperCase() === 'FADE TO BLACK:') {
-                    html += `<div class="transition">${line.toUpperCase()}</div>`;
+                    tokens.push({ type: 'transition', content: line.toUpperCase() });
                     inDialogue = false;
-                    return;
+                    continue;
                 }
 
-                // Character
-                if (line === line.toUpperCase() && !line.startsWith('!') && line.length > 0) {
-                    html += `<div class="character">${line}</div>`;
+                // Character (is uppercase and followed by a non-empty line)
+                if (line === line.toUpperCase() && !line.startsWith('!') && line.length > 0 && nextLine) {
+                    tokens.push({ type: 'character', content: line });
                     inDialogue = true;
-                    return;
+                    continue;
                 }
 
                 // Parenthetical
                 if (inDialogue && line.startsWith('(')) {
-                    html += `<div class="parenthetical">${line}</div>`;
-                    return;
+                    tokens.push({ type: 'parenthetical', content: line });
+                    continue;
                 }
 
                 // Dialogue
                 if (inDialogue) {
-                    html += `<div class="dialogue">${line}</div>`;
-                    return;
+                    tokens.push({ type: 'dialogue', content: line });
+                    continue;
                 }
 
                 // Action
-                html += `<div class="action">${line}</div>`;
-            });
+                tokens.push({ type: 'action', content: line });
+            }
 
-            return html;
+            return tokens;
         }
 
         function renderPreview() {
             const rawText = fountainInput.value;
-            // For preview, we add the title page but not with the PDF-specific class
-            let previewHtml = '';
+            const tokens = tokenizeFountain(rawText);
+            let html = '';
+            let sceneNumber = 1;
+
             if (scriptTitle || scriptAuthor) {
-                previewHtml += `<div class="title-page">`;
-                if (scriptTitle) previewHtml += `<h1>${scriptTitle}</h1>`;
-                if (scriptAuthor) previewHtml += `<h2>${scriptAuthor}</h2>`;
-                previewHtml += `</div>`;
+                html += `<div class="title-page">`;
+                if (scriptTitle) html += `<h1>${scriptTitle}</h1>`;
+                if (scriptAuthor) html += `<h2>${scriptAuthor}</h2>`;
+                html += `</div>`;
             }
-            previewHtml += parseFountain(rawText, showSceneNumbers, false); // false for forPdf
-            screenplayOutput.innerHTML = previewHtml;
+
+            tokens.forEach(token => {
+                if (token.type === 'sceneHeading') {
+                    const sceneText = token.content;
+                    const numberedLine = showSceneNumbers ? `<div class="flex justify-between"><span>${sceneText}</span><span>${sceneNumber}</span></div>` : sceneText;
+                    html += `<div class="scene-heading">${numberedLine}</div>`;
+                    sceneNumber++;
+                } else if (token.type === 'empty') {
+                    html += '<br>';
+                }
+                else {
+                    html += `<div class="${token.type}">${token.content}</div>`;
+                }
+            });
+            screenplayOutput.innerHTML = html;
         }
 
         // --- File & Action Handlers ---
@@ -381,11 +387,18 @@ FADE OUT.`;
         }
         
         function createFdxContent(fountainText) {
-            const parsed = parseFountain(fountainText, false); // Get HTML for basic content
-            const fdxContent = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<FinalDraft DocumentType="Script" Template="No" Version="1">
-<Content>${parsed.replace(/<[^>]+>/g, '')}</Content>
-</FinalDraft>`;
+            const tokens = tokenizeFountain(fountainText);
+            let fdxContent = `<?xml version="1.0" encoding="UTF-8" standalone="no"?><FinalDraft DocumentType="Script" Template="No" Version="1"><Content>`;
+            tokens.forEach(token => {
+                let type = 'Action';
+                if (token.type === 'sceneHeading') type = 'Scene Heading';
+                if (token.type === 'character') type = 'Character';
+                if (token.type === 'dialogue') type = 'Dialogue';
+                if (token.type === 'parenthetical') type = 'Parenthetical';
+                if (token.type === 'transition') type = 'Transition';
+                fdxContent += `<Paragraph Type="${type}"><Text>${token.content}</Text></Paragraph>`;
+            });
+            fdxContent += `</Content></FinalDraft>`;
             return fdxContent;
         }
 
@@ -545,55 +558,86 @@ FADE OUT.`;
             });
         });
 
-        // PDF Save (requires html2canvas) - REVISED AND FIXED
-        savePdfBtn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            
-            // 1. Create a temporary, off-screen container for rendering the PDF content
-            const pdfRenderContainer = document.createElement('div');
-            pdfRenderContainer.style.position = 'absolute';
-            pdfRenderContainer.style.left = '-9999px';
-            pdfRenderContainer.style.width = '595pt'; // A4 width in points
-            pdfRenderContainer.className = 'bg-white text-black p-6'; // Match preview styles
-            
-            // 2. Generate the full HTML for the PDF, including the title page
-            const pdfHtml = parseFountain(fountainInput.value, showSceneNumbers, true);
-            pdfRenderContainer.innerHTML = pdfHtml;
-            document.body.appendChild(pdfRenderContainer);
-
+        // PDF Save - REWRITTEN FOR ACCURACY
+        savePdfBtn.addEventListener('click', () => {
             const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({ orientation: 'p', unit: 'pt', format: 'a4' });
-            
-            // 3. Capture the entire content of the temporary container
-            const canvas = await html2canvas(pdfRenderContainer, {
-                scale: 2,
+            const doc = new jsPDF({ unit: 'pt', format: 'letter' }); // 8.5x11 inches = 612x792 points
+
+            const SCREENPLAY_SETTINGS = {
+                font: 'Courier',
+                fontSizePt: 12,
+                lineHeightPt: 12, // Single spacing
+            };
+
+            const FORMATTING = {
+                sceneHeading: { leftMarginIn: 1.5, rightMarginIn: 1.0, lineSpacingBefore: 1, lineSpacingAfter: 1 },
+                action: { leftMarginIn: 1.5, rightMarginIn: 1.0, lineSpacingBefore: 1, lineSpacingAfter: 0 },
+                character: { leftMarginIn: 3.7, lineSpacingBefore: 1, lineSpacingAfter: 0 },
+                parenthetical: { leftMarginIn: 3.1, lineSpacingBefore: 0, lineSpacingAfter: 0 },
+                dialogue: { leftMarginIn: 2.5, rightMarginIn: 2.5, lineSpacingBefore: 0, lineSpacingAfter: 1 },
+                transition: { leftMarginIn: 1.5, rightMarginIn: 1.0, align: 'right', lineSpacingBefore: 1, lineSpacingAfter: 1 },
+                empty: { lineSpacingBefore: 1, lineSpacingAfter: 0}
+            };
+
+            const margins = { top: 72, bottom: 72, left: 108, right: 72 };
+            const pageHeight = doc.internal.pageSize.getHeight();
+            let cursorY = margins.top;
+
+            doc.setFont(SCREENPLAY_SETTINGS.font, 'normal');
+            doc.setFontSize(SCREENPLAY_SETTINGS.fontSizePt);
+
+            const checkPageBreak = (neededHeight) => {
+                if (cursorY + neededHeight > pageHeight - margins.bottom) {
+                    doc.addPage();
+                    cursorY = margins.top;
+                }
+            };
+
+            // 1. Render Title Page
+            if (scriptTitle || scriptAuthor) {
+                const titleY = pageHeight / 3;
+                if (scriptTitle) {
+                    doc.text(scriptTitle.toUpperCase(), doc.internal.pageSize.getWidth() / 2, titleY, { align: 'center' });
+                }
+                if (scriptAuthor) {
+                    doc.text("Written by", doc.internal.pageSize.getWidth() / 2, titleY + 40, { align: 'center' });
+                    doc.text(scriptAuthor, doc.internal.pageSize.getWidth() / 2, titleY + 60, { align: 'center' });
+                }
+                doc.addPage();
+            }
+
+            // 2. Render Script Content
+            const tokens = tokenizeFountain(fountainInput.value);
+            let sceneNumber = 1;
+
+            tokens.forEach(token => {
+                const config = FORMATTING[token.type];
+                if (!config) return;
+
+                cursorY += config.lineSpacingBefore * SCREENPLAY_SETTINGS.lineHeightPt;
+                checkPageBreak(SCREENPLAY_SETTINGS.lineHeightPt);
+
+                const leftMargin = config.leftMarginIn * 72;
+                const rightMargin = config.rightMarginIn * 72;
+                const availableWidth = doc.internal.pageSize.getWidth() - leftMargin - rightMargin;
+                
+                let textLines = doc.splitTextToSize(token.content || '', availableWidth);
+
+                textLines.forEach(line => {
+                    checkPageBreak(SCREENPLAY_SETTINGS.lineHeightPt);
+                    let xPos = leftMargin;
+                    if(config.align === 'right') {
+                       xPos = doc.internal.pageSize.getWidth() - rightMargin;
+                    }
+                    doc.text(line, xPos, cursorY, { align: config.align || 'left' });
+                    cursorY += SCREENPLAY_SETTINGS.lineHeightPt;
+                });
+                
+                cursorY += config.lineSpacingAfter * SCREENPLAY_SETTINGS.lineHeightPt;
             });
 
-            // 4. Clean up by removing the temporary container
-            document.body.removeChild(pdfRenderContainer);
-
-            // 5. Add the captured image to the PDF, handling multiple pages
-            const imgData = canvas.toDataURL('image/png');
-            const imgProps = pdf.getImageProperties(imgData);
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-            
-            let heightLeft = pdfHeight;
-            let position = 0;
-            const pageHeight = pdf.internal.pageSize.getHeight();
-
-            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-            heightLeft -= pageHeight;
-
-            while (heightLeft > 0) {
-                position -= pageHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-                heightLeft -= pageHeight;
-            }
-            
             const filename = (scriptTitle || 'script').replace(/\s+/g, '_').replace(/[^\w-]/g, '');
-            pdf.save(`${filename}.pdf`);
+            doc.save(`${filename}.pdf`);
         });
 
         let inputTimeout;
