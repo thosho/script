@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fountain To Script</title>
+    <title>Fountain Script Pro</title>
     <!-- Tailwind CSS for modern, responsive styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts for a classic screenplay look -->
@@ -81,6 +81,7 @@
         <div class="p-4">
             <nav class="flex flex-col space-y-2">
                 <a href="#" id="new-btn" class="text-gray-300 hover:bg-gray-700 p-2 rounded-md">New Project</a>
+                <a href="#" id="open-btn" class="text-gray-300 hover:bg-gray-700 p-2 rounded-md">Open...</a>
                 <a href="#" id="title-page-btn" class="text-gray-300 hover:bg-gray-700 p-2 rounded-md">Title Page</a>
                 <div class="relative">
                     <a href="#" id="save-menu-btn" class="w-full text-left text-gray-300 hover:bg-gray-700 p-2 rounded-md">Save As...</a>
@@ -208,11 +209,16 @@
         </div>
     </div>
 
+    <!-- Hidden file input for opening files -->
+    <input type="file" id="file-input" class="hidden" accept=".fountain,.txt">
+
     <script>
         // --- DOM Element References ---
         const fountainInput = document.getElementById('fountain-input');
         const screenplayOutput = document.getElementById('screenplay-output');
         const newBtn = document.getElementById('new-btn');
+        const openBtn = document.getElementById('open-btn');
+        const fileInput = document.getElementById('file-input');
         const saveMenuBtn = document.getElementById('save-menu-btn');
         const saveMenu = document.getElementById('save-menu');
         const saveFountainBtn = document.getElementById('save-fountain-btn');
@@ -522,6 +528,29 @@ Type screenplay here & click SCRIPT button to format it...`;
                 menuPanel.classList.add('-translate-x-full');
             }
         });
+
+        openBtn.addEventListener('click', () => {
+            fileInput.click();
+            menuPanel.classList.add('-translate-x-full');
+        });
+
+        fileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const content = e.target.result;
+                fountainInput.value = content;
+                clearPlaceholder();
+                history.stack = ['', content];
+                history.currentIndex = 1;
+                history.updateButtons();
+            };
+            reader.readAsText(file);
+            fileInput.value = ''; // Reset for next open
+        });
+
         saveMenuBtn.addEventListener('click', (e) => {
             e.preventDefault();
             saveMenu.classList.toggle('hidden');
