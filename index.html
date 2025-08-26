@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fountain Script Converter</title>
+    <title>Fountain Script Pro</title>
     <!-- Tailwind CSS for modern, responsive styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts for a classic screenplay look -->
@@ -18,7 +18,6 @@
         body {
             font-family: 'Inter', sans-serif;
         }
-        /* Using a classic typewriter font for the screenplay output */
         #screenplay-output {
             font-family: 'Courier Prime', monospace;
         }
@@ -43,63 +42,89 @@
         #info-modal {
             transition: opacity 0.3s ease;
         }
+        /* Ensure main content area fills the screen */
+        .main-content {
+            height: calc(100vh - 50px); /* Adjust based on header height */
+        }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-200 flex flex-col h-screen">
+<body class="bg-gray-900 text-gray-200 flex flex-col h-screen overflow-hidden">
 
     <!-- Header Section -->
-    <header class="text-center py-4 border-b border-gray-700">
-        <h1 class="text-2xl md:text-3xl font-bold text-white">Fountain Script Pro</h1>
+    <header class="text-center py-2 border-b border-gray-700 relative flex-shrink-0">
+        <h1 class="text-2xl font-bold text-white">Fountain Script Pro</h1>
     </header>
 
-    <!-- Toolbar -->
-    <div class="bg-gray-800 p-2 flex items-center justify-center flex-wrap gap-2 shadow-md">
-        <button id="new-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md text-sm">New</button>
-        <div class="relative inline-block text-left">
-            <button id="save-menu-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md text-sm inline-flex items-center">
-                Save As <svg class="ml-2 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-            </button>
-            <div id="save-menu" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-10">
-                <div class="py-1" role="menu" aria-orientation="vertical">
-                    <a href="#" id="save-fountain-btn" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem">.fountain</a>
-                    <a href="#" id="save-fdx-btn" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem">.fdx (Final Draft)</a>
-                    <a href="#" id="save-pdf-btn" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem">.pdf</a>
+    <!-- Fullscreen Toggle Button -->
+    <button id="fullscreen-btn" class="absolute top-2 right-3 text-white p-2 rounded-full hover:bg-gray-700 z-30">
+        <svg id="fullscreen-open-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-arrows-fullscreen" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M5.828 10.172a.5.5 0 0 0-.707 0l-4.096 4.096V11.5a.5.5 0 0 0-1 0v3.975a.5.5 0 0 0 .5.5H4.5a.5.5 0 0 0 0-1H1.732l4.096-4.096a.5.5 0 0 0 0-.707zm4.344 0a.5.5 0 0 1 .707 0l4.096 4.096V11.5a.5.5 0 1 1 1 0v3.975a.5.5 0 0 1-.5.5H11.5a.5.5 0 0 1 0-1h2.768l-4.096-4.096a.5.5 0 0 1 0-.707zm0-4.344a.5.5 0 0 0 .707 0l4.096-4.096V4.5a.5.5 0 1 0 1 0V.525a.5.5 0 0 0-.5-.5H11.5a.5.5 0 0 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 0 .707zm-4.344 0a.5.5 0 0 1-.707 0L1.025 1.732V4.5a.5.5 0 0 1-1 0V.525a.5.5 0 0 1 .5-.5H4.5a.5.5 0 0 1 0 1H1.732l4.096 4.096a.5.5 0 0 1 0 .707z"/>
+        </svg>
+        <svg id="fullscreen-close-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-fullscreen-exit hidden" viewBox="0 0 16 16">
+            <path d="M5.5 0a.5.5 0 0 1 .5.5v4A.5.5 0 0 1 5 5h-4a.5.5 0 0 1 0-1h3.5V.5a.5.5 0 0 1 .5-.5zm-5 5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V6.5H.5a.5.5 0 0 1-.5-.5zm10.5 5.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-3.5V15.5a.5.5 0 0 1-1 0v-4zM11 5.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v3.5a.5.5 0 0 1-1 0V6.5h-3a.5.5 0 0 1-.5-.5z"/>
+        </svg>
+    </button>
+
+    <!-- Main Content Area -->
+    <main class="main-content flex-grow overflow-hidden">
+
+        <!-- Write View (Editor) -->
+        <div id="write-view" class="h-full flex flex-col">
+            <!-- Toolbar -->
+            <div class="bg-gray-800 p-2 flex items-center justify-center flex-wrap gap-2 shadow-md flex-shrink-0">
+                <button id="new-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md text-sm">New</button>
+                <div class="relative inline-block text-left">
+                    <button id="save-menu-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md text-sm inline-flex items-center">
+                        Save As <svg class="ml-2 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                    </button>
+                    <div id="save-menu" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-10">
+                        <div class="py-1" role="menu" aria-orientation="vertical">
+                            <a href="#" id="save-fountain-btn" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem">.fountain</a>
+                            <a href="#" id="save-fdx-btn" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem">.fdx (Final Draft)</a>
+                            <a href="#" id="save-pdf-btn" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem">.pdf</a>
+                        </div>
+                    </div>
                 </div>
+                <button id="share-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md text-sm">Share</button>
+                <button id="undo-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md text-sm disabled:opacity-50" disabled>Undo</button>
+                <button id="redo-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md text-sm disabled:opacity-50" disabled>Redo</button>
+                <button id="info-btn" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-md text-sm">Info</button>
+            </div>
+            <!-- Textarea -->
+            <div class="flex-grow p-4 overflow-hidden">
+                 <textarea id="fountain-input" class="w-full h-full bg-gray-800 border border-gray-700 rounded-lg p-4 text-gray-200 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+             <!-- Action Button -->
+            <div class="p-4 flex-shrink-0">
+                <button id="show-script-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg text-lg">SCRIPT</button>
             </div>
         </div>
-        <button id="share-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md text-sm">Share</button>
-        <button id="undo-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md text-sm disabled:opacity-50" disabled>Undo</button>
-        <button id="redo-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md text-sm disabled:opacity-50" disabled>Redo</button>
-        <button id="info-btn" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-md text-sm">Info</button>
-    </div>
 
-    <!-- Main Content: Editor and Preview Panes -->
-    <main class="flex-grow flex flex-col md:flex-row gap-4 p-4 overflow-hidden">
-        <!-- Left Pane: Fountain Text Input -->
-        <div class="w-full md:w-1/2 h-full flex flex-col">
-            <textarea id="fountain-input" class="w-full h-full bg-gray-800 border border-gray-700 rounded-lg p-4 text-gray-200 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-        </div>
-        <!-- Right Pane: Formatted Screenplay Output -->
-        <div class="w-full md:w-1/2 h-full flex flex-col">
-            <div id="screenplay-output" class="w-full h-full bg-white text-black rounded-lg p-6 md:p-8 overflow-y-auto">
-                <!-- Formatted screenplay will be injected here -->
+        <!-- Script View (Preview) -->
+        <div id="script-view" class="h-full flex-col hidden">
+            <div class="flex-grow p-4 overflow-hidden">
+                <div id="screenplay-output" class="w-full h-full bg-white text-black rounded-lg p-6 md:p-8 overflow-y-auto">
+                    <!-- Formatted screenplay will be injected here -->
+                </div>
+            </div>
+             <!-- Action Button -->
+            <div class="p-4 flex-shrink-0">
+                <button id="show-write-btn" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg text-lg">WRITE</button>
             </div>
         </div>
     </main>
 
     <!-- Info Modal -->
-    <div id="info-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 hidden z-20">
+    <div id="info-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
         <div class="bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full p-6 relative">
-            <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white">&times;</button>
+            <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl">&times;</button>
             <h2 class="text-2xl font-bold mb-4 text-white">About Fountain Script Pro</h2>
-            <p class="text-gray-300 mb-4">This is a simple but powerful tool to write screenplays using the Fountain syntax. It's designed to be fast, offline-first, and mobile-friendly.</p>
-            <h3 class="text-xl font-semibold mb-2 text-white">Basic Fountain Syntax</h3>
-            <ul class="list-disc list-inside text-gray-300 space-y-1">
-                <li><strong class="text-white">Scene Headings:</strong> Start with INT. or EXT. (e.g., `INT. APARTMENT - DAY`)</li>
-                <li><strong class="text-white">Character:</strong> A name in all caps on its own line.</li>
-                <li><strong class="text-white">Dialogue:</strong> Text directly following a character line.</li>
-                <li><strong class="text-white">Parenthetical:</strong> Text in parentheses below a character.</li>
-                <li><strong class="text-white">Transition:</strong> A line ending in TO: or starting with FADE.</li>
+            <p class="text-gray-300 mb-4">This tool auto-formats your text into a screenplay. It's designed to be fast, offline-first, and mobile-friendly.</p>
+            <h3 class="text-xl font-semibold mb-2 text-white">Auto-Formatting Rules</h3>
+             <ul class="list-disc list-inside text-gray-300 space-y-1">
+                <li><strong class="text-white">Scene Headings:</strong> Type `int` or `ext` and the line will be capitalized. A `.` is added automatically.</li>
+                <li><strong class="text-white">Character:</strong> A name in ALL CAPS on its own line.</li>
+                <li><strong class="text-white">Transition:</strong> A line ending in `TO:` or starting with `FADE`.</li>
             </ul>
         </div>
     </div>
@@ -120,30 +145,36 @@
         const infoBtn = document.getElementById('info-btn');
         const infoModal = document.getElementById('info-modal');
         const closeModalBtn = document.getElementById('close-modal-btn');
+        const writeView = document.getElementById('write-view');
+        const scriptView = document.getElementById('script-view');
+        const showScriptBtn = document.getElementById('show-script-btn');
+        const showWriteBtn = document.getElementById('show-write-btn');
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        const fullscreenOpenIcon = document.getElementById('fullscreen-open-icon');
+        const fullscreenCloseIcon = document.getElementById('fullscreen-close-icon');
 
         // --- Initial Sample Script ---
         const sampleScript = `Title: My Awesome Script
 Author: A. Writer
 
-.THE APARTMENT - DAY
+int. apartment - day
 
-A sparse, modern apartment. Sunlight streams through a large window.
+A sparse, modern apartment.
 
-JANE (28), sharp and energetic, types furiously on her laptop. MARK (30), relaxed and thoughtful, sips his coffee, watching her.
+JANE (28) types furiously on her laptop.
 
 MARK
 (smiling)
 You're going to wear a hole in that keyboard.
 
 JANE
-(not looking up)
 This proposal is due in an hour.
 
 > CUT TO:
 
-EXT. PARK - LATER
+ext park - later
 
-Jane and Mark walk together, holding coffee cups. The sun is lower in the sky.
+Jane and Mark walk together, holding coffee cups.
 
 FADE OUT.`;
 
@@ -152,29 +183,18 @@ FADE OUT.`;
             stack: [""],
             currentIndex: 0,
             add(value) {
-                // When a new state is added, remove any 'redo' states
+                if (value === this.stack[this.currentIndex]) return; // No change
                 this.stack = this.stack.slice(0, this.currentIndex + 1);
                 this.stack.push(value);
                 this.currentIndex++;
                 this.updateButtons();
             },
-            undo() {
-                if (this.canUndo()) {
-                    this.currentIndex--;
-                    this.updateInput();
-                }
-            },
-            redo() {
-                if (this.canRedo()) {
-                    this.currentIndex++;
-                    this.updateInput();
-                }
-            },
+            undo() { if (this.canUndo()) { this.currentIndex--; this.updateInput(); } },
+            redo() { if (this.canRedo()) { this.currentIndex++; this.updateInput(); } },
             canUndo: () => history.currentIndex > 0,
             canRedo: () => history.currentIndex < history.stack.length - 1,
             updateInput() {
                 fountainInput.value = this.stack[this.currentIndex];
-                renderPreview();
                 this.updateButtons();
             },
             updateButtons() {
@@ -183,12 +203,13 @@ FADE OUT.`;
             }
         };
 
-        // --- Core Parsing Logic ---
+        // --- Core Parsing Logic with Auto-Formatting ---
         function parseFountain(text) {
             const lines = text.split('\n');
             let html = '';
             let isDialogue = false;
             let sceneNumber = 0;
+            const sceneHeadingRegex = /^(INT|EXT|EST|I\/E)\.?\s/i;
 
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i].trim();
@@ -199,10 +220,17 @@ FADE OUT.`;
                     continue;
                 }
                 
-                const isSceneHeading = line.startsWith('INT.') || line.startsWith('EXT.') || line.startsWith('EST.') || line.startsWith('I/E.') || line.startsWith('.');
-                if (isSceneHeading) {
+                // Auto-format Scene Headings
+                if (sceneHeadingRegex.test(line) || line.startsWith('.')) {
                     sceneNumber++;
-                    html += `<div class="flex justify-between font-bold uppercase my-4"><p>${line.replace('.', '')}</p><p>${sceneNumber}</p></div>`;
+                    let formattedLine = line.toUpperCase();
+                    if (line.startsWith('.')) {
+                        formattedLine = formattedLine.substring(1);
+                    } else {
+                        // Ensure dot exists after keyword
+                        formattedLine = formattedLine.replace(/^(INT|EXT|EST|I\/E)\s/, '$1. ');
+                    }
+                    html += `<div class="flex justify-between font-bold uppercase my-4"><p>${formattedLine}</p><p>${sceneNumber}</p></div>`;
                     isDialogue = false;
                 } else if (line.startsWith('>') && line.endsWith('<')) {
                     html += `<p class="text-center my-4">${line.substring(1, line.length - 1).trim()}</p>`;
@@ -219,13 +247,11 @@ FADE OUT.`;
                     if (isDialogue) {
                         html += `<p style="margin-left: 25%; margin-right: 15%;">${line}</p>`;
                     } else {
-                        // Check for Title/Author metadata
                         if(line.startsWith('Title:')) {
                             html += `<h1 class="text-center text-2xl mt-8 mb-2">${line.replace('Title:', '').trim()}</h1>`;
                         } else if (line.startsWith('Author:')) {
                             html += `<h2 class="text-center text-lg mb-8">${line.replace('Author:', '').trim()}</h2>`;
-                        }
-                        else {
+                        } else {
                            html += `<p class="my-4">${line}</p>`;
                         }
                     }
@@ -252,120 +278,83 @@ FADE OUT.`;
         }
         
         function createFdxContent(fountainText) {
-            // This is a simplified FDX generator. A full implementation is complex.
-            const titleMatch = fountainText.match(/^Title:\s*(.*)/m);
-            const title = titleMatch ? titleMatch[1] : 'Untitled';
-            
-            let fdx = `<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<FinalDraft DocumentType="Script" Template="No" Version="1">
-<Content>
-<Paragraph Type="Scene Heading">
-<Text>INT. SCENE - DAY</Text>
-</Paragraph>
-<Paragraph Type="Action">
-<Text>${fountainText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}
-</Text>
-</Paragraph>
-</Content>
-</FinalDraft>`;
+            // This is a simplified FDX generator.
+            let fdx = `<?xml version="1.0" encoding="UTF-8" standalone="no" ?><FinalDraft DocumentType="Script" Template="No" Version="1"><Content>`;
+            const lines = fountainText.split('\n');
+            lines.forEach(line => {
+                const trimmed = line.trim();
+                if (trimmed.length === 0) return;
+                // Basic type detection
+                if (/^(INT|EXT|EST)/i.test(trimmed)) {
+                    fdx += `<Paragraph Type="Scene Heading"><Text>${trimmed}</Text></Paragraph>`;
+                } else if (trimmed === trimmed.toUpperCase() && isNaN(trimmed)) {
+                    fdx += `<Paragraph Type="Character"><Text>${trimmed}</Text></Paragraph>`;
+                } else {
+                    fdx += `<Paragraph Type="Action"><Text>${trimmed.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</Text></Paragraph>`;
+                }
+            });
+            fdx += `</Content></FinalDraft>`;
             return fdx;
         }
 
         // --- Event Listeners ---
         newBtn.addEventListener('click', () => {
-            if (confirm('Are you sure you want to start a new project? Any unsaved changes will be lost.')) {
-                fountainInput.value = `Title: \nAuthor: \n\n`;
-                history.stack = [fountainInput.value];
-                history.currentIndex = 0;
-                history.updateButtons();
-                renderPreview();
-            }
+            fountainInput.value = `Title: \nAuthor: \n\n`;
+            history.stack = [fountainInput.value];
+            history.currentIndex = 0;
+            history.updateButtons();
         });
 
-        saveMenuBtn.addEventListener('click', () => {
+        saveMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
             saveMenu.classList.toggle('hidden');
         });
         
-        document.addEventListener('click', (e) => {
-            if (!saveMenuBtn.contains(e.target)) {
-                saveMenu.classList.add('hidden');
-            }
-        });
+        document.addEventListener('click', () => saveMenu.classList.add('hidden'));
 
-        saveFountainBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            downloadFile('script.fountain', fountainInput.value, 'text/plain');
-            saveMenu.classList.add('hidden');
-        });
-
-        saveFdxBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const fdxContent = createFdxContent(fountainInput.value);
-            downloadFile('script.fdx', fdxContent, 'application/xml');
-            saveMenu.classList.add('hidden');
-        });
-
+        saveFountainBtn.addEventListener('click', (e) => { e.preventDefault(); downloadFile('script.fountain', fountainInput.value, 'text/plain'); });
+        saveFdxBtn.addEventListener('click', (e) => { e.preventDefault(); downloadFile('script.fdx', createFdxContent(fountainInput.value), 'application/xml'); });
         savePdfBtn.addEventListener('click', async (e) => {
             e.preventDefault();
-            saveMenu.classList.add('hidden');
+            renderPreview(); // Ensure preview is up to date
             const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({
-                orientation: 'p',
-                unit: 'pt',
-                format: 'a4'
-            });
-
-            // Temporarily set width for rendering
-            screenplayOutput.style.width = '595pt'; // A4 width in points
-            
-            const canvas = await html2canvas(screenplayOutput, {
-                scale: 2, // Higher scale for better quality
-                useCORS: true,
-                logging: false,
-            });
-
-            screenplayOutput.style.width = ''; // Reset width
-            
+            const pdf = new jsPDF({ orientation: 'p', unit: 'pt', format: 'a4' });
+            screenplayOutput.style.width = '595pt';
+            const canvas = await html2canvas(screenplayOutput, { scale: 2 });
+            screenplayOutput.style.width = '';
             const imgData = canvas.toDataURL('image/png');
-            const imgProps = pdf.getImageProperties(imgData);
             const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-            
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
             let heightLeft = pdfHeight;
             let position = 0;
-            const pageHeight = pdf.internal.pageSize.getHeight();
-
-            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-            heightLeft -= pageHeight;
-
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            heightLeft -= pdf.internal.pageSize.getHeight();
             while (heightLeft > 0) {
                 position = heightLeft - pdfHeight;
                 pdf.addPage();
                 pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-                heightLeft -= pageHeight;
+                heightLeft -= pdf.internal.pageSize.getHeight();
             }
-            
             pdf.save('script.pdf');
         });
 
         shareBtn.addEventListener('click', () => {
             if (navigator.share) {
-                navigator.share({
-                    title: 'My Screenplay',
-                    text: fountainInput.value,
-                }).catch(console.error);
+                navigator.share({ title: 'My Screenplay', text: fountainInput.value }).catch(console.error);
             } else {
-                alert('Web Share API is not supported in your browser. Try copying the text manually.');
+                // Fallback for non-supported browsers (e.g., copy to clipboard)
+                navigator.clipboard.writeText(fountainInput.value).then(() => {
+                    alert('Script copied to clipboard!');
+                }).catch(err => {
+                    console.error('Could not copy text: ', err);
+                });
             }
         });
 
         let inputTimeout;
         fountainInput.addEventListener('input', () => {
-            renderPreview();
             clearTimeout(inputTimeout);
-            inputTimeout = setTimeout(() => {
-                history.add(fountainInput.value);
-            }, 500); // Add to history after 500ms of inactivity
+            inputTimeout = setTimeout(() => history.add(fountainInput.value), 500);
         });
 
         undoBtn.addEventListener('click', () => history.undo());
@@ -373,10 +362,36 @@ FADE OUT.`;
         
         infoBtn.addEventListener('click', () => infoModal.classList.remove('hidden'));
         closeModalBtn.addEventListener('click', () => infoModal.classList.add('hidden'));
-        infoModal.addEventListener('click', (e) => {
-            if (e.target === infoModal) {
-                 infoModal.classList.add('hidden');
+        
+        // View Switching Logic
+        showScriptBtn.addEventListener('click', () => {
+            renderPreview();
+            writeView.classList.add('hidden');
+            scriptView.classList.add('flex');
+            scriptView.classList.remove('hidden');
+        });
+
+        showWriteBtn.addEventListener('click', () => {
+            scriptView.classList.add('hidden');
+            scriptView.classList.remove('flex');
+            writeView.classList.remove('hidden');
+        });
+
+        // Fullscreen Logic
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                });
+            } else {
+                document.exitFullscreen();
             }
+        });
+
+        document.addEventListener('fullscreenchange', () => {
+            const isFullscreen = !!document.fullscreenElement;
+            fullscreenOpenIcon.classList.toggle('hidden', isFullscreen);
+            fullscreenCloseIcon.classList.toggle('hidden', !isFullscreen);
         });
 
         // --- Initialization ---
@@ -384,7 +399,6 @@ FADE OUT.`;
         history.stack = [fountainInput.value];
         history.currentIndex = 0;
         history.updateButtons();
-        renderPreview();
     </script>
 </body>
 </html>
