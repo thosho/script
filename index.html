@@ -51,6 +51,16 @@
         :fullscreen #fullscreen-btn-inline {
             display: flex;
         }
+
+        /* Mobile-specific toolbar styles */
+        @media (max-width: 768px) {
+            #desktop-side-toolbar {
+                display: none;
+            }
+            #mobile-bottom-toolbar {
+                display: flex;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200 flex flex-col h-screen overflow-hidden">
@@ -121,7 +131,7 @@
             <div class="flex-grow p-4 flex gap-2 overflow-hidden">
                  <textarea id="fountain-input" class="flex-grow h-full bg-gray-800 border border-gray-700 rounded-lg p-4 text-gray-200 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                  <!-- Side Toolbar -->
-                 <div class="flex flex-col gap-2 flex-shrink-0">
+                 <div id="desktop-side-toolbar" class="flex flex-col gap-2 flex-shrink-0">
                     <button id="fullscreen-btn-inline" class="hidden bg-gray-600 hover:bg-gray-700 text-white font-bold p-2 rounded-md text-sm" title="Exit Fullscreen">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-fullscreen-exit" viewBox="0 0 16 16">
                             <path d="M5.5 0a.5.5 0 0 1 .5.5v4A.5.5 0 0 1 5 5h-4a.5.5 0 0 1 0-1h3.5V.5a.5.5 0 0 1 .5-.5zm-5 5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V6.5H.5a.5.5 0 0 1-.5-.5zm10.5 5.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-3.5V15.5a.5.5 0 0 1-1 0v-4zM11 5.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v3.5a.5.5 0 0 1-1 0V6.5h-3a.5.5 0 0 1-.5-.5z"/>
@@ -141,6 +151,14 @@
                 <!-- Ad Banner Placeholder -->
                 <div class="ad-banner-placeholder w-full h-16 bg-gray-700 flex items-center justify-center text-gray-400 mb-4 rounded-lg">
                     Ad Banner Space
+                </div>
+                <!-- Mobile Bottom Toolbar -->
+                <div id="mobile-bottom-toolbar" class="hidden bg-gray-800 p-2 items-center justify-around flex-wrap gap-2 shadow-md rounded-lg mb-4">
+                    <button class="action-btn bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-3 rounded-md text-sm" data-action="caps" title="Toggle Case">C</button>
+                    <button class="action-btn bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-3 rounded-md text-sm" data-action="parens" title="Add Parentheses">()</button>
+                    <button class="action-btn bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-3 rounded-md text-sm" data-action="scene" title="Cycle Scene">I/E</button>
+                    <button class="action-btn bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-3 rounded-md text-sm" data-action="time" title="Cycle Time">D/N</button>
+                    <button class="action-btn bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-3 rounded-md text-sm" data-action="transition" title="Cycle Transition">T</button>
                 </div>
                 <button id="show-script-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg text-lg">TO SCRIPT</button>
             </div>
@@ -432,35 +450,40 @@ Type screenplay here & click SCRIPT button to format it...`;
         // --- Textarea Manipulation Helpers ---
         let lastTransition = { text: null, start: -1, end: -1 };
         const transitions = ['CUT TO:', 'FADE IN:', 'FADE OUT:', 'FADE TO BLACK:'];
+        let lastScene = { text: null, start: -1, end: -1 };
+        const scenes = ['INT. ', 'EXT. ', 'INT./EXT. '];
+        let lastTime = { text: null, start: -1, end: -1 };
+        const times = [' - DAY', ' - NIGHT', ' - DAY / NIGHT'];
 
-        function cycleTransition(textarea) {
+        function cycleHelper(textarea, cycleArray, lastState) {
             clearPlaceholder();
             const currentPos = textarea.selectionStart;
 
-            if (lastTransition.text && currentPos === lastTransition.end && textarea.value.substring(lastTransition.start, lastTransition.end) === lastTransition.text) {
-                const currentIndex = transitions.indexOf(lastTransition.text);
-                const nextIndex = (currentIndex + 1) % transitions.length;
-                const newText = transitions[nextIndex];
+            if (lastState.text && currentPos === lastState.end && textarea.value.substring(lastState.start, lastState.end) === lastState.text) {
+                const currentIndex = cycleArray.indexOf(lastState.text);
+                const nextIndex = (currentIndex + 1) % cycleArray.length;
+                const newText = cycleArray[nextIndex];
 
-                textarea.value = textarea.value.substring(0, lastTransition.start) + newText + textarea.value.substring(lastTransition.end);
-                textarea.selectionStart = textarea.selectionEnd = lastTransition.start + newText.length;
+                textarea.value = textarea.value.substring(0, lastState.start) + newText + textarea.value.substring(lastState.end);
+                textarea.selectionStart = textarea.selectionEnd = lastState.start + newText.length;
 
-                lastTransition.text = newText;
-                lastTransition.end = lastTransition.start + newText.length;
+                lastState.text = newText;
+                lastState.end = lastState.start + newText.length;
             } else {
-                const newText = transitions[0];
+                const newText = cycleArray[0];
                 const start = textarea.selectionStart;
                 const end = textarea.selectionEnd;
                 textarea.value = textarea.value.substring(0, start) + newText + textarea.value.substring(end);
                 textarea.selectionStart = textarea.selectionEnd = start + newText.length;
                 
-                lastTransition.start = start;
-                lastTransition.end = start + newText.length;
-                lastTransition.text = newText;
+                lastState.start = start;
+                lastState.end = start + newText.length;
+                lastState.text = newText;
             }
             textarea.focus();
             history.add(textarea.value);
         }
+
 
         function insertAtCursor(textarea, text) {
             clearPlaceholder();
@@ -607,7 +630,9 @@ Type screenplay here & click SCRIPT button to format it...`;
                     case 'ext': insertAtCursor(fountainInput, 'EXT. '); break;
                     case 'day': insertAtCursor(fountainInput, ' - DAY'); break;
                     case 'night': insertAtCursor(fountainInput, ' - NIGHT'); break;
-                    case 'transition': cycleTransition(fountainInput); break;
+                    case 'transition': cycleHelper(fountainInput, transitions, lastTransition); break;
+                    case 'scene': cycleHelper(fountainInput, scenes, lastScene); break;
+                    case 'time': cycleHelper(fountainInput, times, lastTime); break;
                 }
             });
         });
