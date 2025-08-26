@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>scrAipt</title>
+    <title>Fountain Script Pro</title>
     <!-- Tailwind CSS for modern, responsive styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts for a classic screenplay look -->
@@ -42,28 +42,59 @@
         #info-modal { transition: opacity 0.3s ease; }
         .main-content { height: calc(100vh - 50px); }
 
-        /* Rule to hide toolbar in fullscreen */
-        :fullscreen #main-toolbar {
+        /* Rule to hide elements in fullscreen */
+        :fullscreen #main-toolbar, :fullscreen #main-header {
             display: none;
+        }
+        :fullscreen .main-content {
+            height: 100vh;
         }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200 flex flex-col h-screen overflow-hidden">
 
     <!-- Header Section -->
-    <header class="text-center py-2 border-b border-gray-700 relative flex-shrink-0">
-        <h1 class="text-2xl font-bold text-white">Fountain Script Pro</h1>
-    </header>
+    <header id="main-header" class="text-center py-2 border-b border-gray-700 relative flex items-center justify-between px-4">
+        <!-- Hamburger Menu Button -->
+        <button id="hamburger-btn" class="text-white p-2 rounded-full hover:bg-gray-700 z-30" title="Menu">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-list" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+            </svg>
+        </button>
+        
+        <h1 class="text-2xl font-bold text-white absolute left-1/2 -translate-x-1/2">Fountain Script Pro</h1>
 
-    <!-- Fullscreen Toggle Button -->
-    <button id="fullscreen-btn" class="absolute top-2 right-3 text-white p-2 rounded-full hover:bg-gray-700 z-30">
-        <svg id="fullscreen-open-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-arrows-fullscreen" viewBox="0 0 16 16">
-            <path fill-rule="evenodd" d="M5.828 10.172a.5.5 0 0 0-.707 0l-4.096 4.096V11.5a.5.5 0 0 0-1 0v3.975a.5.5 0 0 0 .5.5H4.5a.5.5 0 0 0 0-1H1.732l4.096-4.096a.5.5 0 0 0 0-.707zm4.344 0a.5.5 0 0 1 .707 0l4.096 4.096V11.5a.5.5 0 1 1 1 0v3.975a.5.5 0 0 1-.5.5H11.5a.5.5 0 0 1 0-1h2.768l-4.096-4.096a.5.5 0 0 1 0-.707zm0-4.344a.5.5 0 0 0 .707 0l4.096-4.096V4.5a.5.5 0 1 0 1 0V.525a.5.5 0 0 0-.5-.5H11.5a.5.5 0 0 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 0 .707zm-4.344 0a.5.5 0 0 1-.707 0L1.025 1.732V4.5a.5.5 0 0 1-1 0V.525a.5.5 0 0 1 .5-.5H4.5a.5.5 0 0 1 0 1H1.732l4.096 4.096a.5.5 0 0 1 0 .707z"/>
-        </svg>
-        <svg id="fullscreen-close-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-fullscreen-exit hidden" viewBox="0 0 16 16">
-            <path d="M5.5 0a.5.5 0 0 1 .5.5v4A.5.5 0 0 1 5 5h-4a.5.5 0 0 1 0-1h3.5V.5a.5.5 0 0 1 .5-.5zm-5 5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V6.5H.5a.5.5 0 0 1-.5-.5zm10.5 5.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-3.5V15.5a.5.5 0 0 1-1 0v-4zM11 5.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v3.5a.5.5 0 0 1-1 0V6.5h-3a.5.5 0 0 1-.5-.5z"/>
-        </svg>
-    </button>
+        <!-- Fullscreen Toggle Button -->
+        <button id="fullscreen-btn" class="text-white p-2 rounded-full hover:bg-gray-700 z-30" title="Toggle Fullscreen">
+            <svg id="fullscreen-open-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-arrows-fullscreen" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M5.828 10.172a.5.5 0 0 0-.707 0l-4.096 4.096V11.5a.5.5 0 0 0-1 0v3.975a.5.5 0 0 0 .5.5H4.5a.5.5 0 0 0 0-1H1.732l4.096-4.096a.5.5 0 0 0 0-.707zm4.344 0a.5.5 0 0 1 .707 0l4.096 4.096V11.5a.5.5 0 1 1 1 0v3.975a.5.5 0 0 1-.5.5H11.5a.5.5 0 0 1 0-1h2.768l-4.096-4.096a.5.5 0 0 1 0-.707zm0-4.344a.5.5 0 0 0 .707 0l4.096-4.096V4.5a.5.5 0 1 0 1 0V.525a.5.5 0 0 0-.5-.5H11.5a.5.5 0 0 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 0 .707zm-4.344 0a.5.5 0 0 1-.707 0L1.025 1.732V4.5a.5.5 0 0 1-1 0V.525a.5.5 0 0 1 .5-.5H4.5a.5.5 0 0 1 0 1H1.732l4.096 4.096a.5.5 0 0 1 0 .707z"/>
+            </svg>
+            <svg id="fullscreen-close-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-fullscreen-exit hidden" viewBox="0 0 16 16">
+                <path d="M5.5 0a.5.5 0 0 1 .5.5v4A.5.5 0 0 1 5 5h-4a.5.5 0 0 1 0-1h3.5V.5a.5.5 0 0 1 .5-.5zm-5 5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V6.5H.5a.5.5 0 0 1-.5-.5zm10.5 5.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-3.5V15.5a.5.5 0 0 1-1 0v-4zM11 5.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v3.5a.5.5 0 0 1-1 0V6.5h-3a.5.5 0 0 1-.5-.5z"/>
+            </svg>
+        </button>
+    </header>
+    
+    <!-- Hamburger Menu Panel -->
+    <div id="menu-panel" class="absolute top-14 left-0 w-64 bg-gray-800 shadow-lg z-40 transform -translate-x-full transition-transform duration-300 ease-in-out rounded-br-lg">
+        <div class="p-4">
+            <h2 class="text-xl font-bold text-white mb-4">Menu</h2>
+            <nav class="flex flex-col space-y-2">
+                <a href="#" id="new-btn" class="text-gray-300 hover:bg-gray-700 p-2 rounded-md">New Project</a>
+                <div class="relative">
+                    <a href="#" id="save-menu-btn" class="w-full text-left text-gray-300 hover:bg-gray-700 p-2 rounded-md">Save As...</a>
+                    <div id="save-menu" class="mt-1 ml-4 hidden">
+                        <a href="#" id="save-fountain-btn" class="block text-gray-300 hover:bg-gray-600 p-2 rounded-md">.fountain</a>
+                        <a href="#" id="save-fdx-btn" class="block text-gray-300 hover:bg-gray-600 p-2 rounded-md">.fdx</a>
+                        <a href="#" id="save-pdf-btn" class="block text-gray-300 hover:bg-gray-600 p-2 rounded-md">.pdf</a>
+                    </div>
+                </div>
+                <a href="#" id="share-btn" class="text-gray-300 hover:bg-gray-700 p-2 rounded-md">Share</a>
+                <a href="#" id="info-btn" class="text-gray-300 hover:bg-gray-700 p-2 rounded-md">Info</a>
+            </nav>
+        </div>
+    </div>
+
 
     <!-- Main Content Area -->
     <main class="main-content flex-grow overflow-hidden">
@@ -71,30 +102,35 @@
         <div id="write-view" class="h-full flex flex-col">
             <!-- Toolbar -->
             <div id="main-toolbar" class="bg-gray-800 p-2 flex items-center justify-center flex-wrap gap-2 shadow-md flex-shrink-0">
-                <button id="new-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md text-sm">New</button>
-                <div class="relative inline-block text-left">
-                    <button id="save-menu-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md text-sm inline-flex items-center">
-                        Save As <svg class="ml-2 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                    </button>
-                    <div id="save-menu" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-10">
-                        <div class="py-1" role="menu" aria-orientation="vertical">
-                            <a href="#" id="save-fountain-btn" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem">.fountain</a>
-                            <a href="#" id="save-fdx-btn" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem">.fdx (Final Draft)</a>
-                            <a href="#" id="save-pdf-btn" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem">.pdf</a>
-                        </div>
-                    </div>
-                </div>
-                <button id="share-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md text-sm">Share</button>
-                <button id="undo-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md text-sm disabled:opacity-50" disabled>Undo</button>
-                <button id="redo-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md text-sm disabled:opacity-50" disabled>Redo</button>
-                <button id="info-btn" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-md text-sm">Info</button>
+                <button id="undo-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-3 rounded-md text-sm disabled:opacity-50" disabled title="Undo">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2v1z"/><path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466z"/></svg>
+                </button>
+                <button id="redo-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-3 rounded-md text-sm disabled:opacity-50" disabled title="Redo">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966a.25.25 0 0 1 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/></svg>
+                </button>
+                <button id="zoom-out-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md text-sm" title="Zoom Out">-</button>
+                <button id="zoom-in-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md text-sm" title="Zoom In">+</button>
             </div>
-            <!-- Textarea -->
-            <div class="flex-grow p-4 overflow-hidden">
+            <!-- Textarea and Side Toolbar Wrapper -->
+            <div class="flex-grow p-4 flex gap-2 overflow-hidden">
                  <textarea id="fountain-input" class="w-full h-full bg-gray-800 border border-gray-700 rounded-lg p-4 text-gray-200 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                 <!-- Side Toolbar -->
+                 <div class="flex flex-col gap-2">
+                    <button class="action-btn bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md text-sm" data-action="caps" title="Toggle Case">C</button>
+                    <button class="action-btn bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md text-sm" data-action="parens" title="Add Parentheses">()</button>
+                    <button class="action-btn bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md text-sm" data-action="int" title="Insert INT.">I</button>
+                    <button class="action-btn bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md text-sm" data-action="ext" title="Insert EXT.">E</button>
+                    <button class="action-btn bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md text-sm" data-action="day" title="Insert DAY">D</button>
+                    <button class="action-btn bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md text-sm" data-action="night" title="Insert NIGHT">N</button>
+                    <button class="action-btn bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md text-sm" data-action="transition" title="Cycle Transition">T</button>
+                 </div>
             </div>
-             <!-- Action Button -->
+             <!-- Action Button Area -->
             <div class="p-4 flex-shrink-0">
+                <!-- Ad Banner Placeholder -->
+                <div class="ad-banner-placeholder w-full h-16 bg-gray-700 flex items-center justify-center text-gray-400 mb-4 rounded-lg">
+                    Ad Banner Space
+                </div>
                 <button id="show-script-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg text-lg">SCRIPT</button>
             </div>
         </div>
@@ -106,8 +142,12 @@
                     <!-- Formatted screenplay will be injected here -->
                 </div>
             </div>
-             <!-- Action Button -->
+             <!-- Action Button Area -->
             <div class="p-4 flex-shrink-0">
+                <!-- Ad Banner Placeholder -->
+                <div class="ad-banner-placeholder w-full h-16 bg-gray-700 flex items-center justify-center text-gray-400 mb-4 rounded-lg">
+                    Ad Banner Space
+                </div>
                 <button id="show-write-btn" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg text-lg">WRITE</button>
             </div>
         </div>
@@ -145,6 +185,10 @@
         const fullscreenBtn = document.getElementById('fullscreen-btn');
         const fullscreenOpenIcon = document.getElementById('fullscreen-open-icon');
         const fullscreenCloseIcon = document.getElementById('fullscreen-close-icon');
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const menuPanel = document.getElementById('menu-panel');
+        const zoomInBtn = document.getElementById('zoom-in-btn');
+        const zoomOutBtn = document.getElementById('zoom-out-btn');
 
         // --- Initial Sample Script ---
         const sampleScript = `Title: My Awesome Script
@@ -218,7 +262,7 @@ FADE OUT.`;
                 }
 
                 // Transitions
-                if (line.toUpperCase().endsWith('TO:') || line.toUpperCase() === 'FADE OUT.') {
+                if (line.toUpperCase().endsWith('TO:') || line.toUpperCase() === 'FADE OUT.' || line.toUpperCase() === 'FADE IN:' || line.toUpperCase() === 'FADE TO BLACK:') {
                     html += `<div class="transition">${line.toUpperCase()}</div>`;
                     inDialogue = false;
                     return;
@@ -276,7 +320,89 @@ FADE OUT.`;
             return fdxContent;
         }
 
+        // --- Textarea Manipulation Helpers ---
+        let lastTransition = { text: null, start: -1, end: -1 };
+        const transitions = ['CUT TO:', 'FADE IN:', 'FADE OUT:', 'FADE TO BLACK:'];
+
+        function cycleTransition(textarea) {
+            const currentPos = textarea.selectionStart;
+
+            if (lastTransition.text && currentPos === lastTransition.end && textarea.value.substring(lastTransition.start, lastTransition.end) === lastTransition.text) {
+                const currentIndex = transitions.indexOf(lastTransition.text);
+                const nextIndex = (currentIndex + 1) % transitions.length;
+                const newText = transitions[nextIndex];
+
+                textarea.value = textarea.value.substring(0, lastTransition.start) + newText + textarea.value.substring(lastTransition.end);
+                textarea.selectionStart = textarea.selectionEnd = lastTransition.start + newText.length;
+
+                lastTransition.text = newText;
+                lastTransition.end = lastTransition.start + newText.length;
+            } else {
+                const newText = transitions[0];
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                textarea.value = textarea.value.substring(0, start) + newText + textarea.value.substring(end);
+                textarea.selectionStart = textarea.selectionEnd = start + newText.length;
+                
+                lastTransition.start = start;
+                lastTransition.end = start + newText.length;
+                lastTransition.text = newText;
+            }
+            textarea.focus();
+            history.add(textarea.value);
+        }
+
+        function insertAtCursor(textarea, text) {
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            textarea.value = textarea.value.substring(0, start) + text + textarea.value.substring(end);
+            textarea.selectionStart = textarea.selectionEnd = start + text.length;
+            textarea.focus();
+            history.add(textarea.value); // Update history
+        }
+
+        function wrapWithParens(textarea) {
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const selectedText = textarea.value.substring(start, end);
+            const newText = `(${selectedText})`;
+            textarea.value = textarea.value.substring(0, start) + newText + textarea.value.substring(end);
+            textarea.selectionStart = start + 1;
+            textarea.selectionEnd = end + 1;
+            textarea.focus();
+            history.add(textarea.value); // Update history
+        }
+
+        function toggleCase(textarea) {
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            let newText = '';
+            let targetText = '';
+
+            if (start === end) { // No selection, toggle the whole line
+                let lineStart = textarea.value.lastIndexOf('\n', start - 1) + 1;
+                let lineEnd = textarea.value.indexOf('\n', start);
+                if (lineEnd === -1) lineEnd = textarea.value.length;
+                
+                targetText = textarea.value.substring(lineStart, lineEnd);
+                newText = (targetText === targetText.toUpperCase()) ? targetText.toLowerCase() : targetText.toUpperCase();
+                textarea.value = textarea.value.substring(0, lineStart) + newText + textarea.value.substring(lineEnd);
+                textarea.selectionStart = start;
+                textarea.selectionEnd = end;
+
+            } else { // Toggle selection
+                targetText = textarea.value.substring(start, end);
+                newText = (targetText === targetText.toUpperCase()) ? targetText.toLowerCase() : targetText.toUpperCase();
+                textarea.value = textarea.value.substring(0, start) + newText + textarea.value.substring(end);
+                textarea.selectionStart = start;
+                textarea.selectionEnd = start + newText.length;
+            }
+            textarea.focus();
+            history.add(textarea.value); // Update history
+        }
+
         // --- Event Listeners ---
+        // Menu Buttons
         newBtn.addEventListener('click', () => {
             if (confirm('Start a new project? Unsaved changes will be lost.')) {
                 fountainInput.value = '';
@@ -284,18 +410,44 @@ FADE OUT.`;
                 history.stack = [''];
                 history.currentIndex = 0;
                 history.updateButtons();
+                menuPanel.classList.add('-translate-x-full');
             }
         });
-
         saveMenuBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
+            e.preventDefault();
             saveMenu.classList.toggle('hidden');
         });
-        
-        document.addEventListener('click', () => saveMenu.classList.add('hidden'));
-
         saveFountainBtn.addEventListener('click', (e) => { e.preventDefault(); downloadFile('script.fountain', fountainInput.value, 'text/plain'); });
         saveFdxBtn.addEventListener('click', (e) => { e.preventDefault(); downloadFile('script.fdx', createFdxContent(fountainInput.value), 'application/xml'); });
+        shareBtn.addEventListener('click', () => {
+            if (navigator.share) {
+                navigator.share({ title: 'My Screenplay', text: fountainInput.value }).catch(console.error);
+            } else {
+                alert('Share API not supported; copy text manually.');
+            }
+        });
+        infoBtn.addEventListener('click', () => {
+            infoModal.classList.remove('hidden');
+            menuPanel.classList.add('-translate-x-full');
+        });
+
+        // Toolbar Action Buttons
+        document.querySelectorAll('.action-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const action = e.currentTarget.dataset.action;
+                switch(action) {
+                    case 'caps': toggleCase(fountainInput); break;
+                    case 'parens': wrapWithParens(fountainInput); break;
+                    case 'int': insertAtCursor(fountainInput, 'INT. '); break;
+                    case 'ext': insertAtCursor(fountainInput, 'EXT. '); break;
+                    case 'day': insertAtCursor(fountainInput, ' - DAY'); break;
+                    case 'night': insertAtCursor(fountainInput, ' - NIGHT'); break;
+                    case 'transition': cycleTransition(fountainInput); break;
+                }
+            });
+        });
+
+        // PDF Save (requires html2canvas)
         savePdfBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             renderPreview();
@@ -320,24 +472,15 @@ FADE OUT.`;
             pdf.save('script.pdf');
         });
 
-        shareBtn.addEventListener('click', () => {
-            if (navigator.share) {
-                navigator.share({ title: 'My Screenplay', text: fountainInput.value }).catch(console.error);
-            } else {
-                alert('Share API not supported; copy text manually.');
-            }
-        });
-
         let inputTimeout;
         fountainInput.addEventListener('input', () => {
             clearTimeout(inputTimeout);
-            inputTimeout = setTimeout(() => history.add(fountainInput.value), 500);
+            inputTimeout = setTimeout(() => history.add(fountainInput.value), 300); // Debounce for performance
         });
 
         undoBtn.addEventListener('click', () => history.undo());
         redoBtn.addEventListener('click', () => history.redo());
         
-        infoBtn.addEventListener('click', () => infoModal.classList.remove('hidden'));
         closeModalBtn.addEventListener('click', () => infoModal.classList.add('hidden'));
         
         // View Switching Logic
@@ -352,6 +495,17 @@ FADE OUT.`;
             scriptView.classList.add('hidden');
             scriptView.classList.remove('flex');
             writeView.classList.remove('hidden');
+        });
+
+        // Hamburger Menu Logic
+        hamburgerBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menuPanel.classList.toggle('-translate-x-full');
+        });
+        document.addEventListener('click', (e) => {
+            if (!menuPanel.contains(e.target) && !hamburgerBtn.contains(e.target)) {
+                 menuPanel.classList.add('-translate-x-full');
+            }
         });
 
         // Fullscreen Logic
@@ -370,12 +524,27 @@ FADE OUT.`;
             fullscreenOpenIcon.classList.toggle('hidden', isFullscreen);
             fullscreenCloseIcon.classList.toggle('hidden', !isFullscreen);
         });
+        
+        // Zoom Logic
+        let currentFontSize = 16; // Initial font size in pixels
+        const updateFontSize = () => {
+            fountainInput.style.fontSize = `${currentFontSize}px`;
+        };
+        zoomInBtn.addEventListener('click', () => {
+            currentFontSize += 2;
+            updateFontSize();
+        });
+        zoomOutBtn.addEventListener('click', () => {
+            currentFontSize = Math.max(8, currentFontSize - 2); // Minimum font size of 8px
+            updateFontSize();
+        });
 
         // --- Initialization ---
         fountainInput.value = sampleScript.trim();
-        history.stack = [fountainInput.value];
-        history.currentIndex = 0;
+        history.stack = [fountainInput.value, sampleScript.trim()];
+        history.currentIndex = 1;
         history.updateButtons();
+        updateFontSize();
     </script>
 </body>
 </html>
