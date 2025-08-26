@@ -9,6 +9,7 @@
     <!-- Google Fonts for a classic screenplay look -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <!-- jsPDF and html2canvas for PDF export functionality -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -66,7 +67,10 @@
             </svg>
         </button>
         
-        <h1 class="text-2xl font-bold text-white absolute left-1/2 -translate-x-1/2">Fountain Script Pro</h1>
+       <h1 class="text-2xl font-bold text-white absolute left-1/2 -translate-x-1/2" style="font-family: 'Courier Prime', monospace;">
+  scrAipt
+</h1>
+
 
         <!-- Fullscreen Toggle Button (Header) -->
         <button id="fullscreen-btn" class="text-white p-2 rounded-full hover:bg-gray-700 z-30" title="Toggle Fullscreen">
@@ -118,9 +122,7 @@
             </div>
             <!-- Textarea and Side Toolbar Wrapper -->
             <div class="flex-grow p-4 flex gap-2 overflow-hidden">
-                 <div class="flex-grow h-full overflow-y-auto">
-                    <textarea id="fountain-input" class="w-full h-full bg-gray-800 border border-gray-700 rounded-lg p-4 text-gray-200 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-                 </div>
+                 <textarea id="fountain-input" class="flex-grow h-full bg-gray-800 border border-gray-700 rounded-lg p-4 text-gray-200 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                  <!-- Side Toolbar -->
                  <div class="flex flex-col gap-2 flex-shrink-0">
                     <button id="fullscreen-btn-inline" class="hidden bg-gray-600 hover:bg-gray-700 text-white font-bold p-2 rounded-md text-sm" title="Exit Fullscreen">
@@ -497,12 +499,31 @@ FADE OUT.`;
             downloadFile(`${filename}.fdx`, createFdxContent(fountainInput.value), 'application/xml'); 
         });
         shareBtn.addEventListener('click', () => {
-            if (navigator.share) {
-                navigator.share({ title: 'My Screenplay', text: fountainInput.value }).catch(console.error);
+             if (navigator.share) {
+                navigator.share({
+                    title: scriptTitle || 'My Screenplay',
+                    text: fountainInput.value,
+                }).catch((error) => {
+                    console.error('Share failed:', error);
+                    copyToClipboardFallback();
+                });
             } else {
-                alert('Share API not supported; copy text manually.');
+                copyToClipboardFallback();
             }
         });
+
+        function copyToClipboardFallback() {
+            navigator.clipboard.writeText(fountainInput.value).then(() => {
+                const originalText = shareBtn.textContent;
+                shareBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    shareBtn.textContent = 'Share';
+                }, 2000);
+            }).catch(err => {
+                console.error('Could not copy text: ', err);
+            });
+        }
+
         infoBtn.addEventListener('click', () => {
             infoModal.classList.remove('hidden');
             menuPanel.classList.add('-translate-x-full');
@@ -524,34 +545,53 @@ FADE OUT.`;
             });
         });
 
-        // PDF Save (requires html2canvas)
+        // PDF Save (requires html2canvas) - REVISED AND FIXED
         savePdfBtn.addEventListener('click', async (e) => {
             e.preventDefault();
-            // Temporarily render with PDF-specific formatting
-            screenplayOutput.innerHTML = parseFountain(fountainInput.value, showSceneNumbers, true);
+            
+            // 1. Create a temporary, off-screen container for rendering the PDF content
+            const pdfRenderContainer = document.createElement('div');
+            pdfRenderContainer.style.position = 'absolute';
+            pdfRenderContainer.style.left = '-9999px';
+            pdfRenderContainer.style.width = '595pt'; // A4 width in points
+            pdfRenderContainer.className = 'bg-white text-black p-6'; // Match preview styles
+            
+            // 2. Generate the full HTML for the PDF, including the title page
+            const pdfHtml = parseFountain(fountainInput.value, showSceneNumbers, true);
+            pdfRenderContainer.innerHTML = pdfHtml;
+            document.body.appendChild(pdfRenderContainer);
 
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({ orientation: 'p', unit: 'pt', format: 'a4' });
-            screenplayOutput.style.width = '595pt';
-            const canvas = await html2canvas(screenplayOutput, { scale: 2, scrollY: -window.scrollY });
-            screenplayOutput.style.width = '';
             
-            // Restore the normal preview
-            renderPreview(); 
+            // 3. Capture the entire content of the temporary container
+            const canvas = await html2canvas(pdfRenderContainer, {
+                scale: 2,
+            });
 
+            // 4. Clean up by removing the temporary container
+            document.body.removeChild(pdfRenderContainer);
+
+            // 5. Add the captured image to the PDF, handling multiple pages
             const imgData = canvas.toDataURL('image/png');
+            const imgProps = pdf.getImageProperties(imgData);
             const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            
             let heightLeft = pdfHeight;
             let position = 0;
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            heightLeft -= pdf.internal.pageSize.getHeight();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+
+            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+            heightLeft -= pageHeight;
+
             while (heightLeft > 0) {
-                position = heightLeft - pdfHeight;
+                position -= pageHeight;
                 pdf.addPage();
                 pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-                heightLeft -= pdf.internal.pageSize.getHeight();
+                heightLeft -= pageHeight;
             }
+            
             const filename = (scriptTitle || 'script').replace(/\s+/g, '_').replace(/[^\w-]/g, '');
             pdf.save(`${filename}.pdf`);
         });
