@@ -3,164 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fountain to Screenplay Converter</title>
+    <title>Fountain Script Pro</title>
+    <!-- Tailwind CSS for modern, responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for a classic screenplay look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- jsPDF and html2canvas for PDF export functionality -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
+        /* Using your provided CSS classes for formatting, adapted for the UI */
         body {
+            font-family: 'Inter', sans-serif;
+        }
+        #screenplay-output {
             font-family: 'Courier New', monospace;
-            background-color: #f8f8f8;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        #toolbar {
-            width: 100%;
-            max-width: 800px;
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-        }
-        button {
-            padding: 8px 16px;
-            background-color: #333;
-            color: white;
-            border: none;
-            cursor: pointer;
-            margin: 5px;
-        }
-        #editor {
-            width: 100%;
-            max-width: 800px;
-            height: 300px;
-            font-size: 16px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            margin-bottom: 10px;
-            box-sizing: border-box;
-        }
-        #output {
-            width: 100%;
-            max-width: 800px;
-            background-color: white;
-            padding: 20px;
-            border: 1px solid #ccc;
-            white-space: pre-wrap;
             line-height: 1.5;
-            box-sizing: border-box;
+            white-space: pre-wrap;
         }
-        .title-page {
-            text-align: center;
-            margin-bottom: 50px;
-        }
-        .scene-heading {
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-top: 20px;
-        }
-        .action {
-            margin: 10px 0;
-        }
-        .character {
-            text-transform: uppercase;
-            margin-left: 200px;
-            margin-top: 20px;
-        }
-        .dialogue {
-            margin-left: 150px;
-            margin-right: 150px;
-        }
-        .parenthetical {
-            margin-left: 180px;
-        }
-        .transition {
-            text-align: right;
-            text-transform: uppercase;
-            font-weight: bold;
-            margin: 20px 0;
-        }
-        #info-modal {
+        .title-page { text-align: center; margin-bottom: 0; }
+        .title-page h1 { font-weight: bold; margin-bottom: 0.25rem; }
+        .scene-heading { font-weight: bold; text-transform: uppercase; margin-top: 20px; }
+        .action { margin: 10px 0; }
+        .character { text-transform: uppercase; margin-left: 37%; margin-top: 20px; }
+        .dialogue { margin-left: 25%; margin-right: 15%; }
+        .parenthetical { margin-left: 30%; }
+        .transition { text-align: right; text-transform: uppercase; font-weight: bold; margin: 20px 0; }
+
+        /* Custom scrollbar for a cleaner look */
+        textarea::-webkit-scrollbar, #screenplay-output::-webkit-scrollbar { width: 8px; }
+        textarea::-webkit-scrollbar-track { background: #1f2937; }
+        textarea::-webkit-scrollbar-thumb { background-color: #4b5563; border-radius: 20px; }
+        #screenplay-output::-webkit-scrollbar-track { background: #e5e7eb; }
+        #screenplay-output::-webkit-scrollbar-thumb { background-color: #9ca3af; }
+        
+        #info-modal { transition: opacity 0.3s ease; }
+        .main-content { height: calc(100vh - 50px); }
+
+        /* Rule to hide toolbar in fullscreen */
+        :fullscreen #main-toolbar {
             display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 20px;
-            border: 1px solid #ccc;
-            z-index: 1000;
-            max-width: 80%;
-        }
-        @media (max-width: 600px) {
-            body {
-                padding: 10px;
-            }
-            #editor {
-                height: 200px;
-            }
-            .character {
-                margin-left: 100px;
-            }
-            .dialogue {
-                margin-left: 50px;
-                margin-right: 50px;
-            }
-            .parenthetical {
-                margin-left: 80px;
-            }
-            #toolbar {
-                justify-content: flex-start;
-            }
         }
     </style>
 </head>
-<body>
-    <div id="toolbar">
-        <button id="new-btn">New Project</button>
-        <button id="save-fountain">Save as .fountain</button>
-        <button id="save-fdx">Save as .fdx</button>
-        <button id="save-pdf">Save as PDF</button>
-        <button id="share-btn">Share</button>
-        <button id="undo-btn">Undo</button>
-        <button id="redo-btn">Redo</button>
-        <button id="convert-btn">Convert</button>
-        <button id="info-btn">Info</button>
-    </div>
-    <textarea id="editor" placeholder="Enter your Fountain markup here..."></textarea>
-    <div id="output"></div>
-    <div id="info-modal">
-        <p>This is a simple Fountain to Screenplay converter inspired by DubScript. Features include saving in multiple formats, undo/redo, scene numbering, and more. For full pro features, consider the DubScript app.</p>
-        <button id="close-info">Close</button>
+<body class="bg-gray-900 text-gray-200 flex flex-col h-screen overflow-hidden">
+
+    <!-- Header Section -->
+    <header class="text-center py-2 border-b border-gray-700 relative flex-shrink-0">
+        <h1 class="text-2xl font-bold text-white">Fountain Script Pro</h1>
+    </header>
+
+    <!-- Fullscreen Toggle Button -->
+    <button id="fullscreen-btn" class="absolute top-2 right-3 text-white p-2 rounded-full hover:bg-gray-700 z-30">
+        <svg id="fullscreen-open-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-arrows-fullscreen" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M5.828 10.172a.5.5 0 0 0-.707 0l-4.096 4.096V11.5a.5.5 0 0 0-1 0v3.975a.5.5 0 0 0 .5.5H4.5a.5.5 0 0 0 0-1H1.732l4.096-4.096a.5.5 0 0 0 0-.707zm4.344 0a.5.5 0 0 1 .707 0l4.096 4.096V11.5a.5.5 0 1 1 1 0v3.975a.5.5 0 0 1-.5.5H11.5a.5.5 0 0 1 0-1h2.768l-4.096-4.096a.5.5 0 0 1 0-.707zm0-4.344a.5.5 0 0 0 .707 0l4.096-4.096V4.5a.5.5 0 1 0 1 0V.525a.5.5 0 0 0-.5-.5H11.5a.5.5 0 0 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 0 .707zm-4.344 0a.5.5 0 0 1-.707 0L1.025 1.732V4.5a.5.5 0 0 1-1 0V.525a.5.5 0 0 1 .5-.5H4.5a.5.5 0 0 1 0 1H1.732l4.096 4.096a.5.5 0 0 1 0 .707z"/>
+        </svg>
+        <svg id="fullscreen-close-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-fullscreen-exit hidden" viewBox="0 0 16 16">
+            <path d="M5.5 0a.5.5 0 0 1 .5.5v4A.5.5 0 0 1 5 5h-4a.5.5 0 0 1 0-1h3.5V.5a.5.5 0 0 1 .5-.5zm-5 5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V6.5H.5a.5.5 0 0 1-.5-.5zm10.5 5.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-3.5V15.5a.5.5 0 0 1-1 0v-4zM11 5.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v3.5a.5.5 0 0 1-1 0V6.5h-3a.5.5 0 0 1-.5-.5z"/>
+        </svg>
+    </button>
+
+    <!-- Main Content Area -->
+    <main class="main-content flex-grow overflow-hidden">
+        <!-- Write View (Editor) -->
+        <div id="write-view" class="h-full flex flex-col">
+            <!-- Toolbar -->
+            <div id="main-toolbar" class="bg-gray-800 p-2 flex items-center justify-center flex-wrap gap-2 shadow-md flex-shrink-0">
+                <button id="new-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md text-sm">New</button>
+                <div class="relative inline-block text-left">
+                    <button id="save-menu-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md text-sm inline-flex items-center">
+                        Save As <svg class="ml-2 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                    </button>
+                    <div id="save-menu" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-10">
+                        <div class="py-1" role="menu" aria-orientation="vertical">
+                            <a href="#" id="save-fountain-btn" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem">.fountain</a>
+                            <a href="#" id="save-fdx-btn" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem">.fdx (Final Draft)</a>
+                            <a href="#" id="save-pdf-btn" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem">.pdf</a>
+                        </div>
+                    </div>
+                </div>
+                <button id="share-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md text-sm">Share</button>
+                <button id="undo-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md text-sm disabled:opacity-50" disabled>Undo</button>
+                <button id="redo-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md text-sm disabled:opacity-50" disabled>Redo</button>
+                <button id="info-btn" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-md text-sm">Info</button>
+            </div>
+            <!-- Textarea -->
+            <div class="flex-grow p-4 overflow-hidden">
+                 <textarea id="fountain-input" class="w-full h-full bg-gray-800 border border-gray-700 rounded-lg p-4 text-gray-200 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+             <!-- Action Button -->
+            <div class="p-4 flex-shrink-0">
+                <button id="show-script-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg text-lg">SCRIPT</button>
+            </div>
+        </div>
+
+        <!-- Script View (Preview) -->
+        <div id="script-view" class="h-full flex-col hidden">
+            <div class="flex-grow p-4 overflow-hidden">
+                <div id="screenplay-output" class="w-full h-full bg-white text-black rounded-lg p-6 md:p-8 overflow-y-auto">
+                    <!-- Formatted screenplay will be injected here -->
+                </div>
+            </div>
+             <!-- Action Button -->
+            <div class="p-4 flex-shrink-0">
+                <button id="show-write-btn" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg text-lg">WRITE</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Info Modal -->
+    <div id="info-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full p-6 relative">
+            <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl">&times;</button>
+            <h2 class="text-2xl font-bold mb-4 text-white">About Fountain Script Pro</h2>
+            <p class="text-gray-300 mb-4">This tool auto-formats your text into a screenplay. It's designed to be fast, offline-first, and mobile-friendly.</p>
+        </div>
     </div>
 
-    <!-- Include jsPDF for PDF export (CDN for simplicity; download for offline use) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
-        // Undo/Redo stack
-        let undoStack = [];
-        let redoStack = [];
-        const editor = document.getElementById('editor');
-        editor.addEventListener('input', () => {
-            undoStack.push(editor.value);
-            redoStack = []; // Clear redo on new input
-        });
+        // --- DOM Element References ---
+        const fountainInput = document.getElementById('fountain-input');
+        const screenplayOutput = document.getElementById('screenplay-output');
+        const newBtn = document.getElementById('new-btn');
+        const saveMenuBtn = document.getElementById('save-menu-btn');
+        const saveMenu = document.getElementById('save-menu');
+        const saveFountainBtn = document.getElementById('save-fountain-btn');
+        const saveFdxBtn = document.getElementById('save-fdx-btn');
+        const savePdfBtn = document.getElementById('save-pdf-btn');
+        const shareBtn = document.getElementById('share-btn');
+        const undoBtn = document.getElementById('undo-btn');
+        const redoBtn = document.getElementById('redo-btn');
+        const infoBtn = document.getElementById('info-btn');
+        const infoModal = document.getElementById('info-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const writeView = document.getElementById('write-view');
+        const scriptView = document.getElementById('script-view');
+        const showScriptBtn = document.getElementById('show-script-btn');
+        const showWriteBtn = document.getElementById('show-write-btn');
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        const fullscreenOpenIcon = document.getElementById('fullscreen-open-icon');
+        const fullscreenCloseIcon = document.getElementById('fullscreen-close-icon');
 
-        document.getElementById('undo-btn').addEventListener('click', () => {
-            if (undoStack.length > 1) {
-                redoStack.push(undoStack.pop());
-                editor.value = undoStack[undoStack.length - 1];
+        // --- Initial Sample Script ---
+        const sampleScript = `Title: My Awesome Script
+Author: A. Writer
+
+INT. APARTMENT - DAY
+
+A sparse, modern apartment. A MAN IN A HAT stands by the window.
+
+JANE (28)
+(smiling)
+You're going to wear a hole in that keyboard.
+
+MARK
+This proposal is due in an hour.
+
+FADE OUT.`;
+
+        // --- Undo/Redo Manager ---
+        const history = {
+            stack: [""],
+            currentIndex: 0,
+            add(value) {
+                if (value === this.stack[this.currentIndex]) return;
+                this.stack = this.stack.slice(0, this.currentIndex + 1);
+                this.stack.push(value);
+                this.currentIndex++;
+                this.updateButtons();
+            },
+            undo() { if (this.canUndo()) { this.currentIndex--; this.updateInput(); } },
+            redo() { if (this.canRedo()) { this.currentIndex++; this.updateInput(); } },
+            canUndo: () => history.currentIndex > 0,
+            canRedo: () => history.currentIndex < history.stack.length - 1,
+            updateInput() {
+                fountainInput.value = this.stack[this.currentIndex];
+                this.updateButtons();
+            },
+            updateButtons() {
+                undoBtn.disabled = !this.canUndo();
+                redoBtn.disabled = !this.canRedo();
             }
-        });
+        };
 
-        document.getElementById('redo-btn').addEventListener('click', () => {
-            if (redoStack.length > 0) {
-                undoStack.push(redoStack.pop());
-                editor.value = undoStack[undoStack.length - 1];
-            }
-        });
-
-        // Enhanced Fountain parser with scene numbering
+        // --- PARSING ENGINE FROM YOUR PROVIDED CODE ---
         function parseFountain(input, addSceneNumbers = true) {
             const lines = input.split('\n');
             let html = '';
@@ -182,7 +210,7 @@
 
                 // Scene headings with optional numbering
                 if (line.toUpperCase().startsWith('INT.') || line.toUpperCase().startsWith('EXT.')) {
-                    const numberedLine = addSceneNumbers ? `${sceneNumber}. ${line.toUpperCase()}` : line.toUpperCase();
+                    const numberedLine = addSceneNumbers ? `<div class="flex justify-between"><span>${line.toUpperCase()}</span><span>${sceneNumber}</span></div>` : line.toUpperCase();
                     html += `<div class="scene-heading">${numberedLine}</div>`;
                     sceneNumber++;
                     inDialogue = false;
@@ -222,91 +250,132 @@
             return html;
         }
 
-        // Convert button
-        document.getElementById('convert-btn').addEventListener('click', () => {
-            const input = editor.value;
-            undoStack.push(input); // Save state
-            const output = parseFountain(input);
-            document.getElementById('output').innerHTML = output;
-        });
+        function renderPreview() {
+            const rawText = fountainInput.value;
+            const formattedHtml = parseFountain(rawText);
+            screenplayOutput.innerHTML = formattedHtml;
+        }
 
-        // New project button
-        document.getElementById('new-btn').addEventListener('click', () => {
+        // --- File & Action Handlers ---
+        function downloadFile(filename, content, mimeType) {
+            const element = document.createElement('a');
+            element.setAttribute('href', `data:${mimeType};charset=utf-8,` + encodeURIComponent(content));
+            element.setAttribute('download', filename);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+        
+        function createFdxContent(fountainText) {
+            const parsed = parseFountain(fountainText, false); // Get HTML for basic content
+            const fdxContent = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<FinalDraft DocumentType="Script" Template="No" Version="1">
+<Content>${parsed.replace(/<[^>]+>/g, '')}</Content>
+</FinalDraft>`;
+            return fdxContent;
+        }
+
+        // --- Event Listeners ---
+        newBtn.addEventListener('click', () => {
             if (confirm('Start a new project? Unsaved changes will be lost.')) {
-                editor.value = '';
-                document.getElementById('output').innerHTML = '';
-                undoStack = [];
-                redoStack = [];
+                fountainInput.value = '';
+                screenplayOutput.innerHTML = '';
+                history.stack = [''];
+                history.currentIndex = 0;
+                history.updateButtons();
             }
         });
 
-        // Save as .fountain
-        document.getElementById('save-fountain').addEventListener('click', () => {
-            const blob = new Blob([editor.value], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'script.fountain';
-            a.click();
-            URL.revokeObjectURL(url);
+        saveMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            saveMenu.classList.toggle('hidden');
         });
+        
+        document.addEventListener('click', () => saveMenu.classList.add('hidden'));
 
-        // Save as .fdx (simple XML structure inspired by Final Draft format)
-        document.getElementById('save-fdx').addEventListener('click', () => {
-            const input = editor.value;
-            const parsed = parseFountain(input, false); // Get HTML for basic content
-            const fdxContent = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<FinalDraft DocumentType="Script" Template="No" Version="1">
-<Content>${parsed.replace(/<[^>]+>/g, '')}</Content> <!-- Simplified; use full library for accurate .fdx -->
-</FinalDraft>`;
-            const blob = new Blob([fdxContent], { type: 'application/xml' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'script.fdx';
-            a.click();
-            URL.revokeObjectURL(url);
-        });
-
-        // Save as PDF using jsPDF
-        document.getElementById('save-pdf').addEventListener('click', () => {
+        saveFountainBtn.addEventListener('click', (e) => { e.preventDefault(); downloadFile('script.fountain', fountainInput.value, 'text/plain'); });
+        saveFdxBtn.addEventListener('click', (e) => { e.preventDefault(); downloadFile('script.fdx', createFdxContent(fountainInput.value), 'application/xml'); });
+        savePdfBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            renderPreview();
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.setFont('courier');
-            doc.setFontSize(12);
-            const lines = editor.value.split('\n');
-            let y = 20;
-            lines.forEach(line => {
-                doc.text(line, 10, y);
-                y += 10;
-                if (y > 280) {
-                    doc.addPage();
-                    y = 20;
-                }
-            });
-            doc.save('script.pdf');
+            const pdf = new jsPDF({ orientation: 'p', unit: 'pt', format: 'a4' });
+            screenplayOutput.style.width = '595pt';
+            const canvas = await html2canvas(screenplayOutput, { scale: 2 });
+            screenplayOutput.style.width = '';
+            const imgData = canvas.toDataURL('image/png');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+            let heightLeft = pdfHeight;
+            let position = 0;
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            heightLeft -= pdf.internal.pageSize.getHeight();
+            while (heightLeft > 0) {
+                position = heightLeft - pdfHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+                heightLeft -= pdf.internal.pageSize.getHeight();
+            }
+            pdf.save('script.pdf');
         });
 
-        // Share button (uses Web Share API for mobile)
-        document.getElementById('share-btn').addEventListener('click', () => {
+        shareBtn.addEventListener('click', () => {
             if (navigator.share) {
-                navigator.share({
-                    title: 'My Screenplay',
-                    text: editor.value,
-                }).catch(console.error);
+                navigator.share({ title: 'My Screenplay', text: fountainInput.value }).catch(console.error);
             } else {
                 alert('Share API not supported; copy text manually.');
             }
         });
 
-        // Info button
-        const infoModal = document.getElementById('info-modal');
-        document.getElementById('info-btn').addEventListener('click', () => {
-            infoModal.style.display = 'block';
+        let inputTimeout;
+        fountainInput.addEventListener('input', () => {
+            clearTimeout(inputTimeout);
+            inputTimeout = setTimeout(() => history.add(fountainInput.value), 500);
         });
-        document.getElementById('close-info').addEventListener('click', () => {
-            infoModal.style.display = 'none';
+
+        undoBtn.addEventListener('click', () => history.undo());
+        redoBtn.addEventListener('click', () => history.redo());
+        
+        infoBtn.addEventListener('click', () => infoModal.classList.remove('hidden'));
+        closeModalBtn.addEventListener('click', () => infoModal.classList.add('hidden'));
+        
+        // View Switching Logic
+        showScriptBtn.addEventListener('click', () => {
+            renderPreview();
+            writeView.classList.add('hidden');
+            scriptView.classList.add('flex');
+            scriptView.classList.remove('hidden');
         });
+
+        showWriteBtn.addEventListener('click', () => {
+            scriptView.classList.add('hidden');
+            scriptView.classList.remove('flex');
+            writeView.classList.remove('hidden');
+        });
+
+        // Fullscreen Logic
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        document.addEventListener('fullscreenchange', () => {
+            const isFullscreen = !!document.fullscreenElement;
+            fullscreenOpenIcon.classList.toggle('hidden', isFullscreen);
+            fullscreenCloseIcon.classList.toggle('hidden', !isFullscreen);
+        });
+
+        // --- Initialization ---
+        fountainInput.value = sampleScript.trim();
+        history.stack = [fountainInput.value];
+        history.currentIndex = 0;
+        history.updateButtons();
     </script>
 </body>
 </html>
